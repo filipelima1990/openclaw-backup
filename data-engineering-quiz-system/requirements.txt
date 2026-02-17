@@ -1,0 +1,35 @@
+# Core Framework
+prefect>=2.14.0
+prefect-docker>=0.2.0
+
+# Database
+asyncpg>=0.29.0
+alembic>=1.12.0
+
+# Telegram Bot
+python-telegram-bot>=20.7
+
+# OpenAI API
+openai>=1.6.0
+
+# Web Server
+aiohttp>=3.9.0
+aiofiles>=23.2.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+httpx>=0.26.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+
+# Development
+black>=23.12.0
+ruff>=0.1.0
+mypy>=1.8.0
+
+# Observability
+structlog>=23.2.0

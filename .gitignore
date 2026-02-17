@@ -1,0 +1,11 @@
+portugal-house-market
+.secrets.md
+*.log
+__pycache__/
+*.pyc
+.env
+.venv
+venv/
+gmail-tools/
+openclaw-config.json
+cron-backup/

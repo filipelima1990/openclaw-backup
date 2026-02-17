@@ -1,0 +1,158 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: quiz-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-quiz_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quiz_password}
+      POSTGRES_DB: ${POSTGRES_DB:-quiz_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-quiz_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quiz-network
+
+  # Redis (optional, for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: quiz-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quiz-network
+
+  # Prefect Server (Orchestration)
+  prefect-server:
+    image: prefecthq/prefect:2.14-latest
+    container_name: quiz-prefect
+    command: prefect server start --host 0.0.0.0
+    environment:
+      PREFECT_API_URL: http://localhost:4200/api
+      PREFECT_UI_API_URL: http://localhost:4200/api
+      PREFECT_LOG_LEVEL: INFO
+    ports:
+      - "4200:4200"
+    volumes:
+      - prefect_data:/root/.prefect
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - quiz-network
+
+  # Prefect Agent (Flow execution)
+  prefect-agent:
+    image: prefecthq/prefect:2.14-latest
+    container_name: quiz-prefect-agent
+    command: >
+      prefect agent start 
+      --pool quiz-pool 
+      --work-queue quiz-work-queue
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PREFECT_LOG_LEVEL: INFO
+    depends_on:
+      - prefect-server
+      - postgres
+    volumes:
+      - prefect_data:/root/.prefect
+    networks:
+      - quiz-network
+
+  # Quiz Bot Application
+  quiz-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quiz-bot
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-quiz_user}:${POSTGRES_PASSWORD:-quiz_password}@postgres:5432/${POSTGRES_DB:-quiz_db}
+      
+      # Redis
+      REDIS_URL: redis://redis:6379
+      REDIS_ENABLED: "true"
+      
+      # Prefect
+      PREFECT_API_URL: http://prefect-server:4200/api
+      
+      # Telegram
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      
+      # OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      
+      # Webhook
+      WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:8080}
+      WEBHOOK_PORT: 8080
+      
+      # Quiz
+      DEFAULT_DIFFICULTY: ${DEFAULT_DIFFICULTY:-2}
+      CORRECT_THRESHOLD_FOR_PROMOTION: ${CORRECT_THRESHOLD_FOR_PROMOTION:-3}
+      
+      # Mode
+      QUIZ_MODE: ${QUIZ_MODE:-development}
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${WEBHOOK_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      prefect-server:
+        condition: service_healthy
+    networks:
+      - quiz-network
+    restart: unless-stopped
+
+  # PgAdmin (optional, for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: quiz-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - postgres
+    networks:
+      - quiz-network
+    profiles:
+      - admin
+
+networks:
+  quiz-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prefect_data:
+    driver: local
