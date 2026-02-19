@@ -10,7 +10,7 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 
 | System | Location | Schedule | Destination |
 |--------|----------|----------|-------------|
-| Daily Quiz | `/opt/quiz/` | 9 AM UTC | Personal chat |
+| Daily Quiz | `/opt/quiz/` | 9 AM UTC | Personal chat | **PostgreSQL-backed** - Learning paths, topic mastery, weak area detection |
 | English Tips | `/opt/engtips/` | 5x daily (8, 11, 14, 17, 20 UTC) | Channel -1003875454703 |
 | OddsPortal Predictions | OpenClaw Cron | 10 AM UTC | Channel -1003369440176 |
 | Travel Tips | `/opt/travel/` | 8 AM UTC | Channel -1003401888787 |
@@ -380,6 +380,35 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
   - Restarted Prefect worker service
 - **Current deployments:** Only `Scrape and Load Housing Market Data/daily-scrape-porto-housing` remains
 - **Status:** ✅ All errors resolved, worker running smoothly
+
+### 2026-02-19 - Quiz System PostgreSQL Migration
+- **Migrated**: Quiz system from JSON files to PostgreSQL database
+- **Database**: `quiz_prod` on PostgreSQL server
+- **Tables created**:
+  - `quiz.topics` - 8 topics (Data Modelling, SQL Performance, etc.)
+  - `quiz.difficulties` - 4 levels (beginner → expert)
+  - `quiz.questions` - 101 questions
+  - `quiz.user_progress` - User state (streak, difficulty, etc.)
+  - `quiz.answer_history` - Historical answers for analytics
+  - `quiz.topic_mastery` - Performance by topic/difficulty (learning paths)
+- **New scripts**:
+  - `db_manager.py` - Database operations and connection pooling
+  - `send_daily_quiz_db.py` - Daily quiz sender (PostgreSQL)
+  - `process_answer_db.py` - Answer processor (PostgreSQL)
+  - `test_quiz_db.py` - Test quiz sender
+  - `migrate_to_postgres.py` - Migration script (completed)
+- **New features enabled**:
+  - **Learning path suggestions** - Automatic weak area identification
+  - **Topic mastery tracking** - Performance by topic/difficulty
+  - **Advanced analytics** - Any SQL query possible
+  - **Weak area detection** - Topics with <70% accuracy highlighted
+- **Migration stats**:
+  - 101 questions migrated
+  - 17 answer history records preserved
+  - 12 topic mastery records calculated
+  - All user progress maintained (streak: 2, difficulty: expert)
+- **Cron updated**: Using `send_daily_quiz_db.py` (9 AM UTC)
+- **Status**: ✅ Migration complete, tested, and production-ready
 
 ### 2026-02-19 - Guitar Practice System Removed
 - **Archived**: Moved `/opt/guitar/` to `/opt/guitar.archived.20260219`
