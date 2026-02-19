@@ -85,7 +85,6 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 ### 2026-02-04 to 2026-02-06 - Learning Systems
 - Built Data Engineering Quiz (adaptive difficulty, streak tracking)
 - Built English Tips (5 daily, Portuguese-speaker focused)
-- Built Tech News Newsletter (3 daily, RSS feeds)
 - Built Guitar Practice Reminder (5 categories, rotation)
 - Wiped Prefect housing project (moved to cron-based approach)
 
@@ -115,18 +114,6 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 - Service: systemd (gambling-bot.service) - runs 24/7
 - JSON-based storage (no PostgreSQL needed)
 - Zero token usage - standalone bot
-
-### 2026-02-11 - Streamlit Dashboard Fixes
-- Fixed critical bug: `st.confirm()` doesn't exist, replaced with two-step button pattern
-- Fixed "This Week" filter - was showing last 7 days instead of calendar week
-- Fixed KeyError on transactions page - added profit calculation for each transaction
-- Initialized all statistics variables before conditional blocks to prevent undefined variable errors
-- Added safe `.get()` calls for dictionary access with default values
-- Improved error handling for charts and best/worst days
-- Removed Export section (user request)
-- Fixed goals persistence by removing redundant `load_goals()` calls
-- Changed success messages to `st.toast()` for better UX
-- Removed unused imports (json, time_utils, exporter)
 
 ### 2026-02-11 - Gambling Bot & Dashboard Updates
 - Removed bet target - now only profit goal is tracked
@@ -248,22 +235,6 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
   - `net_profit`, `bank`, `roi`, `ev`, `win_rate`, `average_odds`
 - **Verification**: Ran manual recalculation script to fix existing state
 - **Result**: All stats now accurate and consistent
-
-### 2026-02-11 - Delete Transactions Feature
-- Added ability to delete individual transactions from Transactions page in Streamlit dashboard
-- **New UI elements**:
-  - Added "#" column to transaction table for identification
-  - Added "Delete Transaction" section with selectbox
-  - Shows transaction details before deletion
-  - Delete button with confirmation
-  - Cancel button to go back
-- **Automatic recalculation**: All stats are recalculated immediately after deletion:
-  - Deposits, withdrawals, total bets, total wagered
-  - Total won, total lost, wins, losses
-  - Net profit, bank, ROI, EV, win rate, average odds
-  - Monthly stop loss
-- **Use case**: Delete mistaken transactions registered via Telegram bot
-- **Implementation**: Uses transaction index to identify and remove from state
 
 ### 2026-02-14 - Gambling Bot: /delete Command
 - Added `/delete` command to remove incorrectly recorded transactions
@@ -412,6 +383,27 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 - **Current deployments:** Only `Scrape and Load Housing Market Data/daily-scrape-porto-housing` remains
 - **Status:** ✅ All errors resolved, worker running smoothly
 
+### 2026-02-19 - Music Curator Skill
+- **Created**: Music curator skill for Last.fm-based album recommendations
+- **Location**: `/root/.openclaw/skills/music-curator.skill` (19KB packaged)
+- **Features**:
+  - Daily album recommendations from Last.fm listening history
+  - Automatic acknowledgment detection when user replies "listened"
+  - Telegram delivery to channel -1003823481796
+  - Listening history tracking and stats
+- **Scripts included**:
+  - `recommend_album.py` - Generate recommendations from Last.fm API
+  - `send_album.py` - Send to Telegram via OpenClaw
+  - `process_ack.py` - Handle acknowledgment
+  - `setup_cron.py` - Cron job management
+  - Test and debug utilities
+- **References included**:
+  - `lastfm-api.md` - Last.fm API documentation
+  - `workflow.md` - Detailed workflow guide
+- **Configuration**: Templates in `assets/` for user_data.json and state.json
+- **Installation**: Copy `.skill` file to `/root/.openclaw/skills/` directory
+- **Status**: ✅ Skill packaged and ready for use
+
 ### 2026-02-18 - OddsPortal Predictions System Update
 - **Archived Tech News system** - Moved /opt/newsletter to /opt/newsletter.archived.20260218
 - **Recycled Tech News channel** (-1003369440176) for OddsPortal predictions
@@ -458,9 +450,8 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 | Purpose | Chat ID |
 |---------|---------|
 | English Tips | -1003875454703 |
-| Tech News | -1003369440176 |
 | Travel Tips | -1003401888787 |
-| Last.fm Albums | -1003823481796 | **IMPORTANT:** When user replies "listened" in this channel, I should automatically run `/opt/lastfm-albums/process_ack.py 1` |
+| Last.fm Albums | -1003823481796 | **AUTOMATIC:** When user replies "listened" in this channel, I (Billie) must automatically run `/opt/lastfm-albums/process_ack.py 1` |
 | Guitar Practice | -5287670840 |
 | Personal Chat | 8251137081 |
 
