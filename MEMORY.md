@@ -12,7 +12,7 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 |--------|----------|----------|-------------|
 | Daily Quiz | `/opt/quiz/` | 9 AM UTC | Personal chat |
 | English Tips | `/opt/engtips/` | 5x daily (8, 11, 14, 17, 20 UTC) | Channel -1003875454703 |
-| Tech News | `/opt/newsletter/` | 3x daily (8, 12, 18 UTC) | Channel -1003369440176 |
+| OddsPortal Predictions | OpenClaw Cron | 10 AM UTC | Channel -1003369440176 |
 | Guitar Practice | `/opt/guitar/` | 8 AM UTC | Group -5287670840 |
 | Travel Tips | `/opt/travel/` | 8 AM UTC | Channel -1003401888787 |
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC | Personal chat |
@@ -411,6 +411,21 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
   - Restarted Prefect worker service
 - **Current deployments:** Only `Scrape and Load Housing Market Data/daily-scrape-porto-housing` remains
 - **Status:** ✅ All errors resolved, worker running smoothly
+
+### 2026-02-18 - OddsPortal Predictions System Update
+- **Archived Tech News system** - Moved /opt/newsletter to /opt/newsletter.archived.20260218
+- **Recycled Tech News channel** (-1003369440176) for OddsPortal predictions
+- **Updated skill workflow:**
+  - Top 5 predictions only (down from 10)
+  - Only today's matches (no future dates)
+  - Sorted by percentage (highest to lowest)
+  - Filter for clear consensus (>50%)
+- **Cron job configuration:**
+  - Schedule: Daily at 10:00 AM UTC
+  - Destination: Telegram channel -1003369440176
+  - Isolated session with announcement mode
+- **Investigation:** Documented message routing bug that caused loop (see memory/2026-02-18.md)
+- **Status:** ✅ Cron job re-enabled with updated requirements
 
 ### 2026-02-17 - OpenClaw Backup System
 - **Created GitHub repository:** https://github.com/filipelima1990/openclaw-backup
