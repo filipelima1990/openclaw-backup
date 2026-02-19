@@ -16,7 +16,7 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 | Guitar Practice | `/opt/guitar/` | 8 AM UTC | Group -5287670840 |
 | Travel Tips | `/opt/travel/` | 8 AM UTC | Channel -1003401888787 |
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC | Personal chat |
-| Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC | Channel -1003823481796 |
+| Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily via OpenClaw cron. When user replies "listened" in this channel, I (Billie) must automatically run `/opt/lastfm-albums/process_ack.py 1` |
 | Prefect | `/opt/prefect/` | Running 24/7 | Dashboard: http://167.235.68.81:4200 |
 | Football Data | `/opt/football-data/` | Sundays 10 AM UTC | PostgreSQL: football_data_prod (dev: football_data_dev) |
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC | PostgreSQL: portugal_houses_prod (dev: portugal_houses_dev) |
@@ -382,6 +382,25 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
   - Restarted Prefect worker service
 - **Current deployments:** Only `Scrape and Load Housing Market Data/daily-scrape-porto-housing` remains
 - **Status:** ✅ All errors resolved, worker running smoothly
+
+### 2026-02-19 - Music Curator Dedicated Agent
+- **Created**: Dedicated music-curator agent for autonomous album recommendations
+- **Agent ID**: `music-curator`
+- **Location**: `/root/.openclaw/agents/music-curator/`
+- **Configuration**:
+  - Added to agents.list in openclaw.json
+  - Main agent can spawn music-curator via subagents.allowAgents
+  - AgentDir with AGENT.md and SKILL.md for autonomous operation
+- **Cron Job**: OpenClaw cron runs daily at 2 PM UTC
+  - Spawns isolated music-curator session
+  - Runs recommendation workflow autonomously
+  - Announces results to Telegram channel -1003823481796
+- **Workflow**:
+  1. Daily: Agent checks acknowledgment, generates recommendation, sends to Telegram
+  2. Acknowledgment: Billie (main agent) detects "listened" and runs process_ack.py
+  3. Stats: Automatically tracked in user_data.json
+- **Removed**: Old system crontab entry (migrated to OpenClaw cron)
+- **Status**: ✅ Agent configured, cron job active, next run: tomorrow 2 PM UTC
 
 ### 2026-02-19 - Music Curator Skill
 - **Created**: Music curator skill for Last.fm-based album recommendations
