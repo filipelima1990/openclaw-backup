@@ -13,7 +13,6 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 | Daily Quiz | `/opt/quiz/` | 9 AM UTC | Personal chat |
 | English Tips | `/opt/engtips/` | 5x daily (8, 11, 14, 17, 20 UTC) | Channel -1003875454703 |
 | OddsPortal Predictions | OpenClaw Cron | 10 AM UTC | Channel -1003369440176 |
-| Guitar Practice | `/opt/guitar/` | 8 AM UTC | Group -5287670840 |
 | Travel Tips | `/opt/travel/` | 8 AM UTC | Channel -1003401888787 |
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC | Personal chat |
 | Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily via OpenClaw cron. When user replies "listened" in this channel, I (Billie) must automatically run `/opt/lastfm-albums/process_ack.py 1` |
@@ -85,7 +84,6 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 ### 2026-02-04 to 2026-02-06 - Learning Systems
 - Built Data Engineering Quiz (adaptive difficulty, streak tracking)
 - Built English Tips (5 daily, Portuguese-speaker focused)
-- Built Guitar Practice Reminder (5 categories, rotation)
 - Wiped Prefect housing project (moved to cron-based approach)
 
 ### 2026-02-09 - Telegram Routing Fix
@@ -383,6 +381,12 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 - **Current deployments:** Only `Scrape and Load Housing Market Data/daily-scrape-porto-housing` remains
 - **Status:** ✅ All errors resolved, worker running smoothly
 
+### 2026-02-19 - Guitar Practice System Removed
+- **Archived**: Moved `/opt/guitar/` to `/opt/guitar.archived.20260219`
+- **Removed**: System crontab entry (8 AM UTC daily)
+- **Reason**: User wants to rethink guitar practice workflow
+- **Status**: ✅ System completely removed
+
 ### 2026-02-19 - Music Curator Dedicated Agent
 - **Created**: Dedicated music-curator agent for autonomous album recommendations
 - **Agent ID**: `music-curator`
@@ -471,7 +475,6 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 | English Tips | -1003875454703 |
 | Travel Tips | -1003401888787 |
 | Last.fm Albums | -1003823481796 | **AUTOMATIC:** When user replies "listened" in this channel, I (Billie) must automatically run `/opt/lastfm-albums/process_ack.py 1` |
-| Guitar Practice | -5287670840 |
 | Personal Chat | 8251137081 |
 
 ---
