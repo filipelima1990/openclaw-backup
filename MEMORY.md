@@ -16,7 +16,7 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses |
 | Gambling Bot | `/opt/gambling-bot/` | 24/7 (systemd) | Telegram bot | **Standalone bot** - JSON-based storage |
 | Gambling Web | `/opt/gambling-web/` | 24/7 (systemd) | API: http://167.235.68.81:8000 | **React+FastAPI** - PostgreSQL backend |
-| Mission Control | `/opt/mission-control/` | 00:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 07:00 UTC | **Futuristic UI** - Sidebar navigation, gradient effects, glassmorphism (2026-02-20) |
+| Mission Control | `/opt/mission-control/` | 02:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 08:00 UTC | **Futuristic UI** - Sidebar navigation, gradient effects, glassmorphism (2026-02-20) |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
 | Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
 
@@ -254,6 +254,18 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 - **Service:** Systemd service restarted and running on port 3101
 - **Build time:** ~5 seconds with Turbopack
 - **Bundle size:** ~100KB (gzip) for initial load
+
+### 2026-02-20 - Mission Control Schedule Update
+- **Execution window changed:** From 00:00-07:00 UTC to 02:00-07:00 UTC
+- **Morning brief changed:** From 07:00 UTC to 08:00 UTC
+- **Improvement review changed:** From 06:55 UTC to 07:55 UTC (5 min before brief)
+- **Fixed bug:** Added missing `Tuple` import in task_executor.py
+- **Files updated:**
+  - `/opt/mission-control/agent.py` - Updated scheduler initialization
+  - `/opt/mission-control/scheduler.py` - Changed time checks
+  - `/opt/mission-control/task_executor.py` - Fixed import bug
+  - `/opt/mission-control/README.md` - Updated documentation
+- **Systemd timer:** Restarted to apply changes
 
 ---
 
