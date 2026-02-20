@@ -6,61 +6,51 @@ _Refer to `.secrets.md` for sensitive information (tokens, IPs, keys)._
 
 ## Active Systems
 
-All systems use cron jobs and send to Telegram channels/chats. Documentation lives in `/opt/<system>/README.md`.
+All systems use cron jobs or systemd services. Documentation lives in `/opt/<system>/README.md`.
 
 | System | Location | Schedule | Destination |
 |--------|----------|----------|-------------|
-| Daily Quiz | `/opt/quiz/` | 9 AM UTC | Personal chat | **PostgreSQL-backed** - Learning paths, topic mastery, weak area detection |
-| English Tips | `/opt/engtips/` | 5x daily (8, 11, 14, 17, 20 UTC) | Channel -1003875454703 |
-| OddsPortal Predictions | OpenClaw Cron | 10 AM UTC | Channel -1003369440176 |
-| Travel Tips | `/opt/travel/` | 8 AM UTC | Channel -1003401888787 |
-| Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC | Personal chat |
-| Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily via OpenClaw cron. When user replies "listened" in this channel, I (Billie) must automatically run `/opt/lastfm-albums/process_ack.py 1` |
-| Prefect | `/opt/prefect/` | Running 24/7 | Dashboard: http://167.235.68.81:4200 |
-| Football Data | `/opt/football-data/` | Sundays 10 AM UTC | PostgreSQL: football_data_prod (dev: football_data_dev) |
-| Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC | PostgreSQL: portugal_houses_prod (dev: portugal_houses_dev) |
-| Gambling Tracker | `/opt/gambling-tracker/` | On-demand | Group -5125156105 |
-| PostgreSQL | `/opt/postgresql/` | Running 24/7 | Port 5432 |
+| Daily Quiz | `/opt/quiz/` | 9 AM UTC (cron) | Personal chat | **PostgreSQL-backed** - Learning paths, topic mastery, weak area detection |
+| Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC (cron) | Personal chat |
+| Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC (OpenClaw cron) | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily. When user replies "listened", Billie runs `/opt/lastfm-albums/process_ack.py 1` |
+| Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses |
+| Gambling Bot | `/opt/gambling-bot/` | 24/7 (systemd) | Telegram bot | **Standalone bot** - JSON-based storage |
+| Gambling Web | `/opt/gambling-web/` | 24/7 (systemd) | API: http://167.235.68.81:8000 | **React+FastAPI** - PostgreSQL backend |
+| Mission Control | `/opt/mission-control/` | 00:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 07:00 UTC | **Futuristic UI** - Gradient headers, animated status indicators, glassmorphism cards (2026-02-20) |
+| PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
+| Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
 
 ---
 
 ## Key Technical Decisions
 
 ### Architecture Philosophy
-- **Cron over orchestration:** Using system crontab instead of Prefect for simple scheduled jobs (Dec 2025)
-- **Prefect multi-project:** Single Prefect server orchestrating multiple GitHub repos (Feb 2026)
-- **File-based storage:** JSON for state, no external databases needed for most systems
+- **Cron over orchestration:** Using system crontab for simple scheduled jobs
+- **Prefect for data pipelines:** Single Prefect server orchestrates data projects
+- **Database-backed:** PostgreSQL for data systems, JSON for simple bots
 - **Telegram-first:** All notifications go through Telegram via OpenClaw CLI
 - **Modular design:** Each system is self-contained in `/opt/<system>/`
 
-### Prefect Multi-Project Architecture (Feb 2026)
+### Collaboration Workflow
+- **Team approach:** Billie generates initial project files → Filipe refines with Claude Code
+- **Claude Code:** Used to sharpen, refactor, and improve code quality
+- **Commit convention:** Both Billie and Claude Code contributions use "Billie:" prefix (partner vs bot persona)
+
+### Prefect Architecture (Feb 2026 - Simplified)
 - **Single server:** One Prefect instance on port 4200 (http://167.235.68.81:4200)
-- **Multiple projects:** Each project has its own GitHub repo and flows
-- **Shared work pool:** `default-pool` (process type) handles all deployments
-- **GitHub repos:**
-  - filipelima1990/football-data - Premier League historical data
-  - filipelima1990/portugal-house-market - Porto housing market scraper
-- **Deployments:**
-  - `weekly-load-premier-league` - Sundays 10:00 AM UTC
-  - `daily-scrape-porto-housing` - Daily 9:00 AM UTC
-- **Configuration:** Each project has `prefect.yaml` with deployment settings
+- **Single deployment:** `Scrape and Load Housing Market Data/daily-scrape-porto-housing` (1:00 AM UTC)
+- **Shared work pool:** `default-pool` (process type) handles deployments
+- **PostgreSQL databases:**
+  - `football_data` - Premier League match history
+  - `portugal_houses` - Porto housing listings (185K+ records)
+  - `quiz` / `quiz_prod` - Quiz system
 - **Worker:** systemd service (prefect-worker.service) runs 24/7
 
-### Git Workflow & Deployment (Feb 2026)
+### Git Workflow (Feb 2026)
 - **Commit prefix:** Use "Billie:" instead of "Bot:" (Filipe prefers partner over bot persona)
-- **Default branch:** Always work on `dev` branch, auto-deploy via GitHub Actions
-- **Production deployments:** Ask before pushing to `main` branch (unless explicitly requested)
+- **Simplified structure:** No DEV/PROD separation - single production setup
 - **Breaking changes:** Automatically create PR instead of asking
   - Breaking = schema changes, API contract changes, flow schedule changes, large refactorings
-- **Project structure:**
-  - `/opt/<project>/` → Production (main branch)
-  - `/opt/<project>-dev/` → Development (dev branch)
-- **GitHub Actions:**
-  - `deploy-staging.yml` → Push to dev → deploy to /opt/<project>-dev
-  - `deploy-prod.yml` → Push to main → deploy to /opt/<project>
-- **Shared Prefect server:** All projects use `/opt/prefect` (port 4200) - no project-specific servers
-- **Portugal House Market:** Dev on 4200, Prod on 4201 (separate servers for testing, will migrate to shared)
-- **Football Data:** Uses shared Prefect server only
 
 ### OpenClaw Configuration (Feb 2026)
 - Telegram bindings use `peer.kind` and `peer.id` structure (not `accountId`)
@@ -83,427 +73,195 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 
 ### 2026-02-04 to 2026-02-06 - Learning Systems
 - Built Data Engineering Quiz (adaptive difficulty, streak tracking)
-- Built English Tips (5 daily, Portuguese-speaker focused)
-- Wiped Prefect housing project (moved to cron-based approach)
 
 ### 2026-02-09 - Telegram Routing Fix
 - Fixed personal chat routing (peer structure issue)
-- Quiz group upgraded to supergroup format
-
-### 2026-02-09b/c - Travel Planning
-- Created manual trip recommendations workflow
-- Built automated daily travel tips system
 
 ### 2026-02-10 - Infrastructure
 - System healthcheck weekly report
 - Installed PostgreSQL 16 via Docker
 - Re-installed Prefect 3.5.0 with PostgreSQL backend
-- Built Last.fm album recommendation system
 
-### 2026-02-11 - Gambling Tracker → Standalone Bot (Modular)
+### 2026-02-11 - Gambling Bot (Standalone)
 - Built standalone gambling bot (python-telegram-bot) with deposits, withdrawals, bet tracking with odds
 - Features: ROI, EV, win rate vs break-even, odds range analysis, stop loss alerts (70%, 90%, 100%), streak tracking
-- Commands: /start, /help, /summary, /export, /goal, /progress, /deposit, /withdrawal, /bet <amount> <result> [odds], /stats, /stoploss, /reset_month
+- Commands: /start, /help, /summary, /export, /goal, /progress, /deposit, /withdrawal, /bet <amount> [odds] [market] <result>, /stats, /stoploss, /reset_month
 - Void bets: Track voided/cancelled/refunded bets
-- Charts: Profit trend line chart, win/loss/void pie chart
-- Goals: Monthly profit or bet count targets with progress tracking
-- Location: /opt/gambling-bot/
-- Modular design: State, stats, charts, exporters in separate modules
-- Service: systemd (gambling-bot.service) - runs 24/7
 - JSON-based storage (no PostgreSQL needed)
 - Zero token usage - standalone bot
+- Service: systemd (gambling-bot.service) - runs 24/7
 
-### 2026-02-11 - Gambling Bot & Dashboard Updates
-- Removed bet target - now only profit goal is tracked
-- Added market field to bets: ML (moneyline), oX.X (over goals), uX.X (under goals), h±X.X (handicap)
-- Telegram: `/bet 10 win 2.0 ml` (market codes are optional)
-- Streamlit: Added "📝 Add Transaction" page with deposit, withdrawal, bet forms
-- Bet form includes market dropdown with live preview of market code
-- Market displayed in transactions as `[ML]`, `[O2.5]`, etc.
-- Navigation: Dashboard, Add Transaction, Transactions, Settings
-
-### 2026-02-11 - Market Analysis Added
-- Added market type tracking to stats (Money Line, Over/Under Goals, Handicap)
-- `/stats` command now shows performance breakdown by market type (all-time only)
-- Streamlit Dashboard displays "Performance by Market Type" section
-- Shows profit, total bets, and win rate for each market
-
-### 2026-02-11 - Advanced Analytics Features
-- Streak by market: Track win/loss streaks separately for each market type
-- Day of week analysis: Performance by day (Mon-Sun) with profit, bets, WR
-- Market × Odds heatmap: 2D matrix showing profit by market AND odds range
-- Market EV: Expected value per market to identify most profitable markets
-- Confidence intervals: 95% Wilson score for win rates (e.g., "58% [45%-70%]")
-
-### 2026-02-11 - Extended Market Types
-- Added 18 total market types (up from 4)
-- New: Double Chance, BTTS, DNB, Accumulators (double, treble, acca)
-- New: Corners, Cards, HT/FT, First/Last Goalscorer
-- New: Result at X goals (R3, R5, R7, R9)
-- Streamlit dropdown updated with all market types
-- Bot help updated with market code examples
-
-### 2026-02-11 - Custom Market Management System
-- Simplified betting flow: 4 core markets + Custom option
-- Custom: Free text input for any market code
-- Market Management page: Organize custom markets into categories
-- State supports market_categories for grouping
-- Example categories pre-loaded: Outcomes, Accumulators, Props, Time Markets, Goalscorers, Result Markets
-
-### 2026-02-11 - Streamlit Dashboard Bug Fixes (Evening)
-- Fixed missing `save_goals` import (would crash on goal updates)
-- Added input UI for all market types: Corners, Cards, HT/FT, Double Chance, Both Teams Score, DNB
-- Added categorized market selector in bet form
-- Fixed Stop Loss Settings: Changed `max_value=10000` to `max_value=10000.0` (float)
-- Fixed Market Management: Updated all references from `state["market_categories"]` to `state["stats"]["market_categories"]`
-- Fixed type conversion: Convert all market codes to strings to prevent sorting errors
-- Fixed timestamp parsing: Use `format='mixed'` and `utc=True` for robust ISO8601 handling (in both load_data and Transactions page)
-- Consolidated duplicate code with helper functions: `is_categorized_market()`, `get_market_code()`
-- Fixed "Clear All Data": Now resets `market_categories`, `market_stats`, `market_streaks`, `market_odds_matrix`
-- Fixed nginx proxy: Updated from port 8502 to 8501 with proper configuration
-- **Removed Add Transaction page** from Streamlit dashboard (246 lines removed) - use Telegram bot instead
-
-### 2026-02-11 - Dynamic Market Management
-- Added helper functions to state_manager.py:
-  - `get_available_markets()`: Returns list of all available markets (core + categorized)
-  - `get_market_display_name()`: Gets display name for market code from categories
-- Updated stats.py to use market categories for better naming:
-  - `get_market_type()` now accepts state parameter and uses categorized market names
-  - Updated `update_markets()`, `update_market_streaks()`, `update_market_odds_matrix()` to pass state
-  - Added `recalculate_market_stats()` to refresh market names after category changes
-- Telegram bot updates:
-  - New `/recalc` command to refresh market stats with updated category names
-  - Updated help text to include `/recalc` command
-- **Result**: Custom markets now display as category name only (e.g., "Outcomes", "Accumulators") for cleaner stats
-
-### 2026-02-14 - Gambling Bot: /uncategorized Command
-- Added `/uncategorized` command to show all markets displaying as "Other"
-- Command scans all bet transactions and identifies uncategorized markets
-- Shows market code, bet count, win/loss record, and win rate for each uncategorized market
-- Provides guidance on how to categorize markets via Streamlit Dashboard
-- Updated help text in both `/start` and `/help` commands
-- Updated README.md with new command documentation
-- Bot restarted successfully (gambling-bot.service)
-- **Use case**: User can quickly see what markets need categorization and fix them via dashboard
-
-### 2026-02-14 - Gambling Bot: /last Command
-- Added `/last` command to show last N transactions (default: 10)
-- Command supports filtering by transaction type: `/last bet`, `/last deposit`, `/last withdrawal`
-- `/last N` - Show last N transactions
-- `/last N exclude_type` - Show last N excluding specific type
-- Each transaction shows type, amount, details (result, odds, market for bets), and timestamp
-- Updated help text in both `/start` and `/help` commands
-- Updated README.md with command documentation and examples
-- Bot restarted successfully (gambling-bot.service)
-- **Use cases**: Quick review of recent activity, error checking, filtering by transaction type
-
-### 2026-02-14 - Gambling Bot: Rollback /delete Command
-- Rolled back `/delete` command functionality per user request
-- User prefers to delete transactions using Streamlit Dashboard instead of Telegram commands
-- Removed three async functions: `delete_tx()`, `confirm_delete()`, `cancel_delete()`
-- Removed command handlers: `delete`, `confirm_delete`, `cancel`
-- Removed `/delete`, `/confirm_delete`, `/cancel` from `/start` and `/help` command lists
-- Updated README.md to remove delete-related commands and examples
-- Bot restarted successfully (gambling-bot.service)
-
-### 2026-02-11 - Bank Stat Added
-- Added "Bank (Available)" metric to show money available to bet
-- **Formula**: `deposits - withdrawals - losses + winnings`
-  - Represents actual money available to bet (not P&L)
-- Added `bank` to `calculate_stats()` function in stats.py
-- Updated bot.py to save and display bank in `/stats` output
-- Updated Streamlit dashboard to show bank as prominent metric with emoji indicator
-- Updated default state and reset_month to include bank calculation
-- **Display**: Bank shown first in both Telegram stats and Dashboard metrics
-
-### 2026-02-11 - Transaction Type Filter
-- Added transaction type filter to Transactions page in Streamlit dashboard
-- **Filter options**: All, Bet, Deposit, Withdrawal
-- Dropdown selector allows viewing specific transaction types
-- Default is "All" to show everything
-- **Use case**: Quickly view only bets, only deposits, or only withdrawals without scrolling through all transactions
-
-### 2026-02-11 - Stats Calculation Bug Fix
-- Fixed critical bug: `total_won` and `total_lost` not being saved after recalculation
-- **Root cause**: When recalculating stats, only `net_profit` and `bank` were saved, not the intermediate values
-- **Impact**: These fields showed €0 even when actual values were €17.28 (won) and €240.00 (lost)
-- **Fix**: Updated `add_transaction()` and `reset_month()` in bot.py to save ALL calculated stats:
-  - `deposits`, `withdrawals`, `total_bets`, `total_wagered`
-  - `total_won`, `total_lost`, `wins`, `losses`
-  - `net_profit`, `bank`, `roi`, `ev`, `win_rate`, `average_odds`
-- **Verification**: Ran manual recalculation script to fix existing state
-- **Result**: All stats now accurate and consistent
-
-### 2026-02-14 - Gambling Bot: /delete Command
-- Added `/delete` command to remove incorrectly recorded transactions
-- Two-step confirmation process for safety: `/delete <number>` → `/confirm_delete <number>`
-- `/cancel` command to cancel a pending deletion
-- Shows full transaction details before confirmation (number, type, amount, details, timestamp)
-- Stats automatically recalculated after deletion (no manual `/recalc` needed)
-- Updated help text in both `/start` and `/help` commands
-- Updated README.md with delete workflow documentation and examples
-- Bot restarted successfully (gambling-bot.service)
-
-### 2026-02-12 - Bet Command Argument Order Updated
-- Changed `/bet` command argument order for better workflow
-- **Old format**: `/bet <amount> <result> [odds] [market]`
-- **New format**: `/bet <amount> [odds] [market] <result>`
-- **Benefits**:
-  - Result is now the last argument (required)
-  - Odds and market are optional, in the middle
-  - More intuitive betting workflow
-- **Updated files**:
-  - `bot.py`: Modified `bet()` command handler to parse new argument order
-  - Updated `/start` welcome message with new examples
-  - Updated `/help` command documentation
-  - Updated `README.md` with new syntax
-- **Examples**:
-  - `/bet 10 2.0 ml win` - Full bet with market
-  - `/bet 10 1.8 o2.5 loss` - Standard bet
-  - `/bet 15 push o2.5` - Push bet (no odds needed in market)
-  - `/bet 10 win` - Simple bet (odds defaults to 1.0)
+### 2026-02-11 to 2026-02-14 - Gambling Bot Enhancements
+- Added market tracking (ML, Over/Under, Handicap, etc.)
+- Advanced analytics: streak by market, day of week analysis, market × odds heatmap, market EV
+- Custom market management system with categories
+- Streamlit Dashboard (now superseded by gambling-web)
+- `/uncategorized` command to find unclassified markets
+- `/last` command to show recent transactions
+- Bank stat added (actual money available to bet)
+- Transaction type filter
+- Stats calculation bug fix
 
 ### 2026-02-12 - Free API Research
-- Conducted comprehensive research on free APIs recommended by developers and data engineers (2025-2026)
-- Searched Twitter/X, Reddit, and developer blogs for current sentiment
-- **Key findings**:
-  - **Top LLM APIs**: Google Gemini (1,500 req/day), Groq (ultra-fast), OpenRouter (100+ models), Hugging Face (500K+ models)
-  - **Data APIs**: CoinGecko (crypto, no auth), OpenWeatherMap (weather), REST Countries (unlimited), GitHub API (5,000 req/hr auth)
-  - **Scraping APIs**: Scrape Creators (social media), ScrapingBee (general), Firecrawl (AI-powered), Apify (10K+ tools)
-  - **Automation**: n8n (free self-hosted workflow automation), Zapier (100 tasks/month free)
-  - **Monitoring**: Sentry (error tracking free), Grafana (open-source)
-  - **Email**: SendGrid **discontinued free tier July 2025**, Resend emerging as alternative
-- **Personalized recommendations for Filipe** (Data Engineering focus):
-  - n8n (workflow orchestration), Groq (fast LLM inference), OpenRouter (multi-model experimentation)
-  - CoinGecko (crypto data for gambling insights), Hugging Face (ML experiments), GitHub API (repo automation)
-  - Scrape Creators (social data), Supabase (PostgreSQL + auto APIs), OpenWeatherMap (weather pipeline source)
-- **Note**: Detailed findings stored in `memory/2026-02-12.md`
+- Researched free APIs for developers (LLM, data, scraping, automation)
+- Personalized recommendations: n8n, Groq, OpenRouter, CoinGecko, Hugging Face, GitHub API, Scrape Creators, Supabase, OpenWeatherMap
 
-### 2026-02-12 - Last.fm Albums Acknowledgment Automation
-- Implemented Option 2: Message-Checking Cron (automated acknowledgment detection)
-- **Workflow:** User replies "listened" → Billie detects → Runs `process_ack.py 1` → Next day new album
-- **Files updated:**
-  - `check_messages.py` - Attempts to check Telegram for "listened" messages (has API limitations)
-  - `send_album.py` - Calls check_messages.py before sending new album
-  - `ACKNOWLEDGMENT.md` - Updated documentation for new workflow
-  - `README.md` - Updated to reflect automated acknowledgment
-- **Known limitation:** Telegram Bot API can't read channel messages easily; relies on Billie (AI agent) to detect "listened" in channel
-- **Manual fallback:** `/opt/lastfm-albums/process_ack.py 1` if automated detection fails
-- **Current state:** 3 albums listened (Hayley Williams, Interpol, Kings of Leon)
+### 2026-02-12 to 2026-02-19 - Last.fm Albums
+- Built Last.fm album recommendation system
+- Message-checking cron for acknowledgment detection
+- Dedicated music-curator agent created
+- OpenClaw cron job: Daily at 2 PM UTC
+- Workflow: User replies "listened" → Billie detects → Runs process_ack.py
 
-### 2026-02-13 - Git Workflow Implementation
-- Implemented professional git workflow with dev/prod environments for both projects
-- **Portugal House Market:**
-  - Created dev branch, set up `/opt/portugal-house-market-dev` and `/opt/portugal-house-market`
-  - Created separate Prefect servers for testing (dev: 4200, prod: 4201) - plan to migrate to shared
-  - GitHub Actions: `deploy-staging.yml` (dev branch) and `deploy-prod.yml` (main branch)
-  - Automated deployments tested successfully
-  - Documentation: `DEPLOYMENT.md` created
-- **Football Data:**
-  - Created dev branch, set up `/opt/football-data-dev` and `/opt/football-data`
-  - Uses shared Prefect server at `/opt/prefect` (port 4200)
-  - GitHub Actions: `deploy-staging.yml` (dev branch) and `deploy-prod.yml` (main branch)
-  - Automated deployments tested successfully
-  - Documentation: `DEPLOYMENT.md` created
-- **Shared Infrastructure:**
-  - RSA 4096-bit SSH key for GitHub Actions: `/root/.ssh/github_actions_rsa`
-  - GitHub secrets configured for both projects: `SERVER_HOST`, `SERVER_USER`, `SSH_PRIVATE_KEY`
-  - Shared Prefect server at `/opt/prefect` (port 4200) orchestrates all projects
-- **Commit Convention:** Use "Billie:" prefix (partner vs bot persona), work on dev branch by default
-- **Breaking Changes:** Automatically create PR (schema changes, API changes, schedule changes, refactorings)
+### 2026-02-13 to 2026-02-16 - Prefect & Git Workflow
+- Implemented professional git workflow (later simplified)
+- Multi-project Prefect setup with single server
+- Created GitHub repos for football-data and portugal-house-market
+- PostgreSQL database separation (later removed)
+- Data migration & testing
+- Prefect deployment cleanup & polars bug fix
 
-### 2026-02-13 - Prefect Multi-Project Architecture
-- Implemented multi-project Prefect setup with single server, multiple GitHub repos
-- Created `filipelima1990/football-data` (private) repo from `/opt/football-data`
-  - Premier League data from football-data.co.uk
-  - Deployment: `weekly-load-premier-league` (Sundays 10:00 AM UTC)
-- Cloned `filipelima1990/portugal-house-market` to `/opt/portugal-house-market`
-  - Porto housing market scraper (Imovirtual)
-  - Deployment: `daily-scrape-porto-housing` (Daily 9:00 AM UTC)
-- Both deployments use shared `default-pool` work pool
-- Created `prefect.yaml` for both projects with pull step for working directory
-- Updated both projects to use Prefect v3 API (`flow.deploy()` vs deprecated `Deployment.build_from_flow()`)
-- Deployed via CLI: `prefect deploy <flow_file> --name <name> --pool <pool> --cron <schedule>`
-- All deployments visible at http://167.235.68.81:4200
-
-### 2026-02-14 - PostgreSQL Database Separation (Dev/Prod)
-- Created separate PostgreSQL databases for each project's dev and prod environments
-  - Football Data: `football_data_dev`, `football_data_prod`
-  - Housing Market: `portugal_houses_dev`, `portugal_houses_prod`
-- Created schemas for all databases:
-  - Football: `raw_pl_matches` table with indexes (match_date, home_team, away_team, league_division)
-  - Housing: Three schemas (raw, staging, marts) with listings tables and price tracking
-- Updated all `.env` files to use environment-specific databases:
-  - `/opt/football-data/.env` → `football_data_prod`
-  - `/opt/football-data-dev/.env` → `football_data_dev`
-  - `/opt/portugal-house-market/.env` → `portugal_houses_prod`
-  - `/opt/portugal-house-market-dev/.env` → `portugal_houses_dev`
-- Created documentation:
-  - `/opt/football-data/DEPLOYMENT.md` - Updated with database configuration
-  - `/opt/portugal-house-market/DEPLOYMENT.md` - Created full deployment guide
-  - `/root/.openclaw/workspace/DATABASE_SETUP.md` - Complete setup summary
-  - `/root/.openclaw/workspace/create_schemas.py` - Schema recreation script
-- Old database `football_data` (deprecated) still exists but unused
-- User `dataeng` created for housing project access (password: `changeme`)
-- Architecture benefit: Clean separation prevents cross-contamination between dev and prod
-
-### 2026-02-14 - Data Migration & Testing
-- Migrated 185,562 housing listings from `postgres.raw.listings` to both dev and prod databases
-- Migration method: CSV export → temp tables → insert with conflict resolution
-- Verification: All tests passed (configuration, data integrity, insert operations)
-- Housing data: 185,562 total listings, 63,139 unique properties
-- Football data: Schema ready (`raw_pl_matches` table with indexes)
-- Both deployments ready for production (PRs created for review)
-- Status: ✅ All tests passed, ready to merge PRs to main
-
-### 2026-02-14 - Prefect Deployment Cleanup & Schedule Update
-- Deleted old deployment "Daily Scrape and Load Housing Data/daily-scrape-housing-nationwide" (outdated)
-- Created new deployments with 1:00 AM UTC schedule:
-  - `daily-scrape-porto-housing-dev` (dev environment, uses `portugal_houses_dev` DB)
-  - `daily-scrape-porto-housing` (prod environment, uses `portugal_houses_prod` DB)
-- Kept utility flow "Quick Scrape (No Database)" for manual testing (no deployment)
-- Both deployments use same flow but different `.env` files based on directory
-- Schedule changed from 9:00 AM UTC to 1:00 AM UTC (user request)
-- Status: ✅ Deployments cleaned and schedule updated
-
-### 2026-02-16 - Prefect Deployment Cleanup & Bug Fix
-- **Removed deployments:**
-  - `Load Premier League Data/weekly-load-premier-league` (football flow)
-  - `Scrape and Load Housing Market Data/daily-scrape-porto-housing-dev` (dev flow from prod Prefect server)
-- **Fixed critical polars filter bug:**
-  - Issue: `ValueError: invalid predicate for filter` in scrape_flow.py
-  - Root cause: Using lambda function with polars filter (incorrect syntax)
-  - Fix: Changed from `df.filter(lambda r: r["price_eur"] is not None)` to `df.filter(pl.col("price_eur").is_not_null())`
-  - Added `import polars as pl` to scrape_flow.py
-  - Fixed in both `/opt/portugal-house-market` (prod) and `/opt/portugal-house-market-dev` (dev)
-  - Committed changes to both repos
-  - Restarted Prefect worker service
-- **Current deployments:** Only `Scrape and Load Housing Market Data/daily-scrape-porto-housing` remains
-- **Status:** ✅ All errors resolved, worker running smoothly
-
-### 2026-02-19 - Quiz System PostgreSQL Migration
-- **Migrated**: Quiz system from JSON files to PostgreSQL database
-- **Database**: `quiz_prod` on PostgreSQL server
-- **Tables created**:
-  - `quiz.topics` - 8 topics (Data Modelling, SQL Performance, etc.)
-  - `quiz.difficulties` - 4 levels (beginner → expert)
-  - `quiz.questions` - 101 questions
-  - `quiz.user_progress` - User state (streak, difficulty, etc.)
-  - `quiz.answer_history` - Historical answers for analytics
-  - `quiz.topic_mastery` - Performance by topic/difficulty (learning paths)
-- **New scripts**:
-  - `db_manager.py` - Database operations and connection pooling
-  - `send_daily_quiz_db.py` - Daily quiz sender (PostgreSQL)
-  - `process_answer_db.py` - Answer processor (PostgreSQL)
-  - `test_quiz_db.py` - Test quiz sender
-  - `migrate_to_postgres.py` - Migration script (completed)
-- **New features enabled**:
-  - **Learning path suggestions** - Automatic weak area identification
-  - **Topic mastery tracking** - Performance by topic/difficulty
-  - **Advanced analytics** - Any SQL query possible
-  - **Weak area detection** - Topics with <70% accuracy highlighted
-- **Migration stats**:
-  - 101 questions migrated
-  - 17 answer history records preserved
-  - 12 topic mastery records calculated
-  - All user progress maintained (streak: 2, difficulty: expert)
-- **Cron updated**: Using `send_daily_quiz_db.py` (9 AM UTC)
-- **Status**: ✅ Migration complete, tested, and production-ready
-
-### 2026-02-19 - Guitar Practice System Removed
-- **Archived**: Moved `/opt/guitar/` to `/opt/guitar.archived.20260219`
-- **Removed**: System crontab entry (8 AM UTC daily)
-- **Reason**: User wants to rethink guitar practice workflow
-- **Status**: ✅ System completely removed
-
-### 2026-02-19 - Music Curator Dedicated Agent
-- **Created**: Dedicated music-curator agent for autonomous album recommendations
-- **Agent ID**: `music-curator`
-- **Location**: `/root/.openclaw/agents/music-curator/`
-- **Configuration**:
-  - Added to agents.list in openclaw.json
-  - Main agent can spawn music-curator via subagents.allowAgents
-  - AgentDir with AGENT.md and SKILL.md for autonomous operation
-- **Cron Job**: OpenClaw cron runs daily at 2 PM UTC
-  - Spawns isolated music-curator session
-  - Runs recommendation workflow autonomously
-  - Announces results to Telegram channel -1003823481796
-- **Workflow**:
-  1. Daily: Agent checks acknowledgment, generates recommendation, sends to Telegram
-  2. Acknowledgment: Billie (main agent) detects "listened" and runs process_ack.py
-  3. Stats: Automatically tracked in user_data.json
-- **Removed**: Old system crontab entry (migrated to OpenClaw cron)
-- **Status**: ✅ Agent configured, cron job active, next run: tomorrow 2 PM UTC
-
-### 2026-02-19 - Music Curator Skill
-- **Created**: Music curator skill for Last.fm-based album recommendations
-- **Location**: `/root/.openclaw/skills/music-curator.skill` (19KB packaged)
-- **Features**:
-  - Daily album recommendations from Last.fm listening history
-  - Automatic acknowledgment detection when user replies "listened"
-  - Telegram delivery to channel -1003823481796
-  - Listening history tracking and stats
-- **Scripts included**:
-  - `recommend_album.py` - Generate recommendations from Last.fm API
-  - `send_album.py` - Send to Telegram via OpenClaw
-  - `process_ack.py` - Handle acknowledgment
-  - `setup_cron.py` - Cron job management
-  - Test and debug utilities
-- **References included**:
-  - `lastfm-api.md` - Last.fm API documentation
-  - `workflow.md` - Detailed workflow guide
-- **Configuration**: Templates in `assets/` for user_data.json and state.json
-- **Installation**: Copy `.skill` file to `/root/.openclaw/skills/` directory
-- **Status**: ✅ Skill packaged and ready for use
-
-### 2026-02-18 - OddsPortal Predictions System Update
-- **Archived Tech News system** - Moved /opt/newsletter to /opt/newsletter.archived.20260218
-- **Recycled Tech News channel** (-1003369440176) for OddsPortal predictions
-- **Updated skill workflow:**
-  - Top 5 predictions only (down from 10)
-  - Only today's matches (no future dates)
-  - Sorted by percentage (highest to lowest)
-  - Filter for clear consensus (>50%)
-- **Cron job configuration:**
-  - Schedule: Daily at 10:00 AM UTC
-  - Destination: Telegram channel -1003369440176
-  - Isolated session with announcement mode
-- **Investigation:** Documented message routing bug that caused loop (see memory/2026-02-18.md)
-- **Status:** ✅ Cron job re-enabled with updated requirements
+### 2026-02-14 - Gambling Web (React+FastAPI)
+- Started new gambling tracker with React frontend and FastAPI backend
+- PostgreSQL-backed (gambling database)
+- API on port 8000
+- **Note:** Not actively used yet, but kept for future rework
 
 ### 2026-02-17 - OpenClaw Backup System
-- **Created GitHub repository:** https://github.com/filipelima1990/openclaw-backup
-- **Backup system setup:**
-  - Added remote "backup" to workspace git repo
-  - Created `/opt/openclaw-backup/backup.sh` - Main backup script
-  - Created `/opt/openclaw-backup/setup-cron.sh` - Cron installer
-  - Created `/opt/openclaw-backup/README.md` - Documentation
-  - Set up cron job: Daily at 2:00 AM UTC
-- **What gets backed up:**
-  - `MEMORY.md` - Long-term memory
-  - `memory/` - Daily notes
-  - `AGENTS.md`, `USER.md`, `SOUL.md`, `IDENTITY.md` - Configuration
-  - All markdown documentation
-  - `openclaw.json` - Main config (temporarily included)
-  - `cron/` - Cron definitions (temporarily included)
-- **Excluded from backup:**
-  - `.secrets.md` - Sensitive information
-  - `gmail-tools/` - Contains Google OAuth credentials
-  - `.env` files, log files, Python cache, virtual environments
-  - `openclaw-config.json`, `cron-backup/` - Temporary backup files
-- **Status:** ✅ Backup system operational, first backup successful
+- Created GitHub repository: https://github.com/filipelima1990/openclaw-backup
+- Backup system setup with cron job (Daily 2:00 AM UTC)
+- Backs up: MEMORY.md, memory/, AGENTS.md, USER.md, SOUL.md, IDENTITY.md, markdown docs
+- Excludes: .secrets.md, gmail-tools/, .env files, logs, Python cache
+
+### 2026-02-18 - OddsPortal Predictions (Removed)
+- Tech News system archived
+- OddsPortal predictions system created (later removed Feb 20)
+
+### 2026-02-19 - Guitar Practice System (Removed)
+- Archived `/opt/guitar/`
+- System crontab entry removed
+
+### 2026-02-19 - Mission Control
+- Created autonomous overnight agent with Next.js dashboard
+- Execution window: 00:00 - 07:00 UTC
+- Morning brief at 07:00 UTC
+- Task tracking with logs, artefacts, blockers
+- Self-improvement system
+- Dashboard on port 3101
+
+### 2026-02-19 - Quiz System PostgreSQL Migration
+- Migrated Quiz system from JSON to PostgreSQL
+- Database: `quiz_prod` / `quiz` (both exist)
+- Tables: topics, difficulties, questions, user_progress, answer_history, topic_mastery
+- New features: Learning path suggestions, topic mastery tracking, weak area detection
+- 101 questions migrated, 17 answer history preserved
+
+### 2026-02-20 - System Cleanup
+- **Removed:** /opt/OddsHarvester (third-party odds scraper)
+- **Removed:** /opt/engtips (English tips - 5 daily)
+- **Removed:** /opt/travel (Travel tips)
+- **Removed:** /opt/oddsportal-hot-matches (Hot matches analysis)
+- **Removed:** /opt/_archived/ (dev versions archived)
+- **Removed:** Cron jobs for engtips and travel
+- **Removed:** OpenClaw cron job for oddsportal-hot-matches
+- **Simplified:** Prefect - only one deployment (housing market), no DEV/PROD separation
+- **Kept:** Gambling Bot (standalone) and Gambling Web (React+FastAPI) - serve different purposes, to be reworked later
+- **Kept:** Mission Control - will be revamped
+- **Kept:** Google/Chrome - browser automation
+
+### 2026-02-22 - OddsPortal Skills Removed
+- **Removed:** OpenClaw skills - oddsportal-hot-matches and oddsportal-predictions
+- **Removed:** Workspace directory - `/root/.openclaw/workspace/oddsportal-hot-matches/` (1.5M)
+- No longer using OddsPortal-related features
+
+### 2026-02-22 - Web Development Skills Added
+- **Installed:** nextjs-developer - Senior Next.js 14+ App Router specialist (server components, server actions, performance optimization)
+- **Installed:** frontend-design - Web Interface Guidelines for UI reviews (Vercel)
+- **Installed:** react-best-practices - Vercel React/Next.js performance optimization (57 rules across 8 categories)
+- Skills installed via clawdhub from LobeHub marketplace
+- Ready to build production-grade web apps with Next.js
+
+### 2026-02-22 - Testing, API & DevOps Skills Added
+- **Installed:** web-qa-bot - AI-powered web QA automation (accessibility-tree based testing)
+- **Installed:** playwright-cli - Browser automation for end-to-end tests
+- **Installed:** fastapi-expert - Senior-level FastAPI skill (async Python, Pydantic V2, JWT/OAuth2)
+- **Installed:** read-github - Semantic search across GitHub repos (README, /docs, code)
+- **Installed:** dokploy - Deploy Docker/git/compose apps via CLI
+- **Installed MCP Servers:**
+  - Postgres MCP Pro - Database health, index tuning, query plans, safe SQL execution (installed via pipx)
+  - Web Scraper MCP - General-purpose scraping (Playwright, Apify, requests/BeautifulSoup)
+- MCP servers configured at `/opt/mcp-servers/README.md`
+- MCP servers integrate with Claude Desktop or MCP-compatible clients (not OpenClaw skills)
+
+### 2026-02-22 - Prefect Decommissioned
+- **Decision:** Prefect was overkill for current needs (only 2 simple daily pipelines)
+- **Removed:**
+  - Prefect services: systemd (prefect.service, prefect-worker.service) disabled and stopped
+  - Prefect venv: ~240MB RAM reclaimed
+  - Football Data project: `/opt/football-data/` deleted
+- **Simplified:** Housing market moved from Prefect to cron (daily 1 AM UTC)
+- **Resources Reclaimed:** ~240MB RAM + ~42% CPU usage
+- **Rationale:** Prefect was good for learning, but cron is better for simple "run script at X time" workflows
+
+### 2026-02-20 - Mission Control Dashboard Revamped (Final)
+- **Complete refactor** using Next.js 16, Server Components, Server Actions, and modern React patterns
+- **New Sections:**
+  - **System Health**: CPU, Memory, Uptime widgets
+  - **Team Section**: All 5 registered agents (Mission Control, Music Curator, Quiz Agent, Health Check, Gambling Bot)
+  - **Skills Section**: All 15 installed OpenClaw skills with categories and filters
+- **Enhanced Logs**: Session grouping, detailed log viewer with stack traces and context
+- **Enhanced Tasks**: Edit backlog tasks, high priority tasks, blocked tasks, recent tasks
+- **Documents Hub**: Scans all /opt/ projects for markdown files, comprehensive filtering
+- **Architecture changes:**
+  - Migrated from client-only to Server Components by default
+  - Created centralized data layer (lib/data.ts, lib/agents.ts, lib/documents.ts) with React.cache()
+  - Implemented Server Actions for mutations (create/delete tasks)
+  - Full TypeScript coverage with strict mode
+  - Added proper error boundaries and loading states
+- **Skills applied:** nextjs-developer, react-best-practices, frontend-design
+- **Documentation:** Created REFACTOR.md, REFACTOR_CHECKLIST.md, IMPROVEMENTS_SUMMARY.md
+- **API endpoints:** All updated to use new data layer (backward compatible)
+- **Service:** Systemd service restarted and running on port 3101
+- **Build time:** ~5 seconds with Turbopack
+- **Bundle size:** ~100KB (gzip) for initial load
+- **Understanding hub**: Dashboard now serves as central knowledge base to understand what we're building together
+
+### 2026-02-20 - Mission Control Dashboard Revamped
+- **Complete refactor** using Next.js 16, Server Components, Server Actions, and modern React patterns
+- **Architecture changes:**
+  - Migrated from client-only pages to Server Components by default
+  - Created centralized data layer (`lib/data.ts`) with React.cache() for deduplication
+  - Implemented Server Actions for mutations (create/delete/update tasks)
+  - Full TypeScript coverage with strict mode
+  - Added proper error boundaries and loading states for each route
+- **New components created:**
+  - UI components: Card, Badge, Button, Loading spinners
+  - Feature components: TaskForm, TaskList, LogList, DocumentList
+  - Utility functions: cn(), formatDate(), formatTime(), formatRelativeTime()
+- **Performance improvements:**
+  - Parallel data fetching with Promise.all()
+  - Eliminated fetch waterfalls
+  - Added revalidation support (30-second cache)
+  - Proper loading states and error handling
+- **Accessibility enhancements:**
+  - ARIA labels on all interactive elements
+  - Semantic HTML structure
+  - Keyboard navigation support
+  - Screen reader friendly
+- **Skills applied:** nextjs-developer, react-best-practices, frontend-design
+- **Documentation:** Created `dashboard/REFACTOR.md` and `dashboard/REFACTOR_CHECKLIST.md`
+- **API endpoints:** All updated to use new data layer (backward compatible)
+- **Service:** Systemd service restarted and running on port 3101
+- **Build time:** ~5 seconds with Turbopack
+- **Bundle size:** ~100KB (gzip) for initial load
 
 ---
 
 ## Telegram Channel IDs
 
-## Telegram Channel IDs
-
 | Purpose | Chat ID |
 |---------|---------|
-| English Tips | -1003875454703 |
-| Travel Tips | -1003401888787 |
-| Last.fm Albums | -1003823481796 | **AUTOMATIC:** When user replies "listened" in this channel, I (Billie) must automatically run `/opt/lastfm-albums/process_ack.py 1` |
+| Last.fm Albums | -1003823481796 | **AUTOMATIC:** When user replies "listened", Billie runs `/opt/lastfm-albums/process_ack.py 1` |
 | Personal Chat | 8251137081 |
 
 ---
@@ -514,4 +272,81 @@ All systems use cron jobs and send to Telegram channels/chats. Documentation liv
 - **Server access:** SSH tunnel via `~/openclaw-ui.sh` (local) or direct to `.secrets.md`
 - **System status:** Check each `/opt/<system>/README.md`
 - **Cron jobs:** System crontab (`crontab -l`)
-- **Docker:** `docker ps` for running containers (PostgreSQL, Prefect)
+- **Docker:** `docker ps` for running containers (PostgreSQL)
+- **Prefect:** http://167.235.68.81:4200
+- **Mission Control Dashboard:** http://167.235.68.81:3101
+- **Gambling API:** http://167.235.68.81:8000
+
+---
+
+## Running Systemd Services
+
+| Service | Status | Purpose |
+|---------|--------|---------|
+| prefect.service | active | Prefect server (port 4200) |
+| prefect-worker.service | active | Executes Prefect deployments |
+| gambling-bot.service | active | Standalone Telegram gambling bot |
+| gambling-api.service | active | FastAPI backend for gambling-web (port 8000) |
+| gambling-dashboard.service | disabled | Streamlit dashboard (superseded by gambling-web) |
+| mission-control-dashboard.service | active | Next.js dashboard (port 3101) |
+| mission-control-tick.timer | active | Wakes mission-control agent every 30 min |
+
+---
+
+## PostgreSQL Databases
+
+- **football_data** - Premier League match history
+- **portugal_houses** - Porto housing listings (185K+ records)
+- **quiz** / **quiz_prod** - Quiz system (both exist, likely use quiz_prod)
+- **postgres** - System DB
+
+---
+
+## File Structure Summary
+
+```
+/opt/
+├── containerd/          (12K) - Docker runtime
+├── postgresql/          (16K) - PostgreSQL config
+├── openclaw-backup/     (20K) - Backup scripts
+├── healthcheck/         (36K) - Weekly system report
+├── lastfm-albums/       (100K) - Last.fm recommendations
+├── gambling-bot/        (372K) - Standalone Telegram bot (JSON)
+├── quiz/                (876K) - Data Engineering Quiz (PostgreSQL)
+├── football-data/       (896K) - Premier League scraper (Prefect)
+├── gambling-web/        (239M) - React+FastAPI gambling tracker (PostgreSQL)
+├── google/              (388M) - Chrome browser (automation)
+├── mission-control/     (453M) - Autonomous agent + Next.js dashboard
+├── prefect/             (577M) - Prefect server (port 4200)
+└── portugal-house-market/ (710M) - Housing scraper (Prefect)
+```
+
+---
+
+## Future Work / To Rework
+
+1. **Gambling Systems:** Both gambling-bot (standalone) and gambling-web (React+FastAPI) need to be reworked - they serve different purposes but aren't actively used yet
+2. **Prefect Deployments:** Only one deployment (housing market) - football data deployment was removed
+
+### 2026-02-20 - Mission Control UI Enhancements
+- **Futuristic UI Redesign:** Applied modern, futuristic design to Mission Control dashboard
+- **Team Section Fixes:**
+  - Added debug logging to track agent display issues
+  - All 5 agents now visible: Mission Control, Music Curator, Quiz Agent, Health Check, Gambling Bot
+  - Enhanced with glassmorphism cards, animated gradients, and status indicators
+- **Header Upgrade:**
+  - Gradient background with animated blue/purple pulse
+  - Animated moon emoji (🌙) as status indicator
+  - Real-time status badges with glow effects
+- **Agent Cards:**
+  - Glassmorphism design with hover effects
+  - Animated status dots (green for active, yellow for paused, gray for idle)
+  - Gradient borders and backdrop blur
+  - Smooth transitions on hover
+- **View Switcher:** Updated with gradient buttons for grid/list toggle
+- **Performance:** ~5-second build time with Turbopack, ~100KB bundle size
+- **Tech Stack:** Next.js 16, React 19, Tailwind CSS v4
+
+---
+
+**Last Updated:** 2026-02-20
