@@ -16,7 +16,7 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses |
 | Gambling Bot | `/opt/gambling-bot/` | 24/7 (systemd) | Telegram bot | **Standalone bot** - JSON-based storage |
 | Gambling Web | `/opt/gambling-web/` | 24/7 (systemd) | API: http://167.235.68.81:8000 | **React+FastAPI** - PostgreSQL backend |
-| Mission Control | `/opt/mission-control/` | 00:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 07:00 UTC | **Futuristic UI** - Gradient headers, animated status indicators, glassmorphism cards (2026-02-20) |
+| Mission Control | `/opt/mission-control/` | 00:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 07:00 UTC | **Futuristic UI** - Sidebar navigation, gradient effects, glassmorphism (2026-02-20) |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
 | Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
 
@@ -330,20 +330,24 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 
 ### 2026-02-20 - Mission Control UI Enhancements
 - **Futuristic UI Redesign:** Applied modern, futuristic design to Mission Control dashboard
+- **Sidebar Navigation:**
+  - Fixed sidebar with gradient design (blue/purple theme)
+  - Navigation items: Dashboard, Team, Skills, Tasks, Logs, Documents
+  - Active page indicator with glowing dot
+  - Smooth transitions and hover effects
+  - Moon emoji (🌙) as branding element
 - **Team Section Fixes:**
-  - Added debug logging to track agent display issues
-  - All 5 agents now visible: Mission Control, Music Curator, Quiz Agent, Health Check, Gambling Bot
+  - Now shows only 2 actual OpenClaw agents (main, music-curator)
   - Enhanced with glassmorphism cards, animated gradients, and status indicators
-- **Header Upgrade:**
-  - Gradient background with animated blue/purple pulse
-  - Animated moon emoji (🌙) as status indicator
-  - Real-time status badges with glow effects
 - **Agent Cards:**
   - Glassmorphism design with hover effects
   - Animated status dots (green for active, yellow for paused, gray for idle)
   - Gradient borders and backdrop blur
   - Smooth transitions on hover
-- **View Switcher:** Updated with gradient buttons for grid/list toggle
+- **Layout Changes:**
+  - All pages now use DashboardLayout wrapper with sidebar
+  - Removed top header (navigation moved to sidebar)
+  - Added section IDs (#team, #skills) for hash navigation
 - **Performance:** ~5-second build time with Turbopack, ~100KB bundle size
 - **Tech Stack:** Next.js 16, React 19, Tailwind CSS v4
 
