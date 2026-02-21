@@ -309,6 +309,44 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
   - `/opt/mission-control/task_handlers.py` - All task handler implementations
 - **Files updated:**
   - `/opt/mission-control/agent.py` - Imports and registers handlers on init
+
+### 2026-02-21 - Mission Control Kanban Board & Simplified Task Form
+- **Removed Task Type dropdown** - Simplified form to Title, Description, Priority only
+- **Created KanbanBoard component:**
+  - 4 columns: Backlog, In Progress, Done, Blocked
+  - Futuristic glassmorphism design matching dashboard theme
+  - Priority filter (All/High/Medium/Low)
+  - Expandable task cards with details
+  - Empty state placeholders with helpful messages
+  - Animated status indicator dots
+  - Task count badges per column
+  - Hover effects with gradient overlays
+- **Task Card Features:**
+  - Click to expand/collapse
+  - Shows created, started, completed timestamps
+  - Displays error messages and blockers
+  - Logs and artefacts count indicators
+  - Priority badges (High/Medium/Low)
+- **Homepage updates:**
+  - Replaced task cards with Kanban board
+  - Kept system health, team, skills sections
+  - All tasks now visible in organized columns
+- **Modern extras implemented:**
+  - Real-time filtering by priority
+  - Responsive grid layout (1 col mobile, 2 tablet, 4 desktop)
+  - Smooth transitions and animations
+  - Glassmorphism effects with backdrop blur
+  - Gradient button designs
+  - Accessibility features (ARIA labels, keyboard nav)
+- **README.md updated** with Kanban board documentation
+- **Form simplified** - Just type what you want, no task type selection needed
+- **Usage:** Describe task in plain text → Mission Control executes as AI task overnight
+- **Files created:**
+  - `/opt/mission-control/dashboard/src/components/tasks/KanbanBoard.tsx` - Full Kanban board implementation
+- **Files updated:**
+  - `/opt/mission-control/dashboard/src/components/tasks/TaskForm.tsx` - Removed task type dropdown
+  - `/opt/mission-control/dashboard/src/app/page.tsx` - Integrated Kanban board
+  - `/opt/mission-control/README.md` - Updated with Kanban features
   - Dashboard task form - Added task type selection
 - **Usage:** Create task with `ai_task` type, type natural language prompt, I execute overnight
 
