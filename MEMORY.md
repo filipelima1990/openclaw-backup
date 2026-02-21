@@ -16,7 +16,7 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses |
 | Gambling Bot | `/opt/gambling-bot/` | 24/7 (systemd) | Telegram bot | **Standalone bot** - JSON-based storage |
 | Gambling Web | `/opt/gambling-web/` | 24/7 (systemd) | API: http://167.235.68.81:8000 | **React+FastAPI** - PostgreSQL backend |
-| Mission Control | `/opt/mission-control/` | 02:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 08:00 UTC | **Futuristic UI** - Sidebar navigation, gradient effects, glassmorphism (2026-02-20) |
+| Mission Control | `/opt/mission-control/` | 02:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 08:00 UTC | **Futuristic UI** - Sidebar navigation, gradient effects, glassmorphism (2026-02-20) | **Natural Language Tasks** - AI task type executes prompts directly via OpenClaw (2026-02-21) |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
 | Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
 
@@ -266,6 +266,24 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
   - `/opt/mission-control/task_executor.py` - Fixed import bug
   - `/opt/mission-control/README.md` - Updated documentation
 - **Systemd timer:** Restarted to apply changes
+
+### 2026-02-21 - Mission Control Natural Language Tasks
+- **Added AI Task Handler:** `ai_task` type now accepts natural language prompts
+- **Task Types Available:**
+  - `ai_task` - Execute any prompt via OpenClaw (recommended)
+  - `code_review` - Automatic code quality analysis
+  - `maintenance` - System cleanup and optimizations
+  - `backup` - Create backups of directories/databases
+  - `custom` - Pre-defined workflow handlers
+- **Fixed New Task Button:** Client component issue resolved with NewTaskForm
+- **Task Form Update:** Added task type dropdown with helpful descriptions
+- **Handler Registration:** All handlers auto-registered on agent startup
+- **Files created:**
+  - `/opt/mission-control/task_handlers.py` - All task handler implementations
+- **Files updated:**
+  - `/opt/mission-control/agent.py` - Imports and registers handlers on init
+  - Dashboard task form - Added task type selection
+- **Usage:** Create task with `ai_task` type, type natural language prompt, I execute overnight
 
 ---
 
