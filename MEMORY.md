@@ -267,6 +267,33 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
   - `/opt/mission-control/README.md` - Updated documentation
 - **Systemd timer:** Restarted to apply changes
 
+### 2026-02-21 - Mission Control Schedule Update
+- **Execution window changed:** From 00:00-07:00 UTC to 02:00-07:00 UTC
+- **Morning brief changed:** From 07:00 UTC to 08:00 UTC
+- **Improvement review changed:** From 06:55 UTC to 07:55 UTC (5 min before brief)
+- **Fixed bug:** Added missing `Tuple` import in task_executor.py
+- **Files updated:**
+  - `/opt/mission-control/agent.py` - Updated scheduler initialization
+  - `/opt/mission-control/scheduler.py` - Changed time checks
+  - `/opt/mission-control/task_executor.py` - Fixed import bug
+  - `/opt/mission-control/README.md` - Updated documentation
+- **Systemd timer:** Restarted to apply changes
+
+### 2026-02-21 - Mission Control Tasks per Cycle
+- **Changed from 5 tasks to 1 task per cycle** for better debugging and error isolation
+- **Benefits:**
+  - Clearer execution logs (one task = one log block)
+  - Precise timing (know exactly when each task ran)
+  - Better isolation (task failures don't cascade)
+  - Safer for variable-length tasks (no overrun risk)
+- **Trade-off:**
+  - Slower throughput (10 tasks/night vs 50 tasks/night)
+  - More frequent agent wakes (10 cycles vs 10 cycles)
+- **Files updated:**
+  - `/opt/mission-control/agent.py` - Changed max_tasks from 5 to 1
+  - `/opt/mission-control/README.md` - Updated documentation
+- **Configuration:** 30-minute wake interval × 1 task = 10 tasks/night capacity
+
 ### 2026-02-21 - Mission Control Natural Language Tasks
 - **Added AI Task Handler:** `ai_task` type now accepts natural language prompts
 - **Task Types Available:**
