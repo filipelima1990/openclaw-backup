@@ -12,7 +12,7 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 |--------|----------|----------|-------------|
 | Daily Quiz | `/opt/quiz/` | 9 AM UTC (cron) | Personal chat | **PostgreSQL-backed** - Learning paths, topic mastery, weak area detection |
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC (cron) | Personal chat |
-| Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC (OpenClaw cron) | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily. When user replies "listened", Billie runs `/opt/lastfm-albums/process_ack.py 1` |
+| Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC (OpenClaw cron) | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily. Works independently - Billie NOT involved. Handles button clicks, text acknowledgments, and album sending. |
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses |
 | Gambling Bot | `/opt/gambling-bot/` | 24/7 (systemd) | Telegram bot | **Standalone bot** - JSON-based storage |
 | Gambling Web | `/opt/gambling-web/` | 24/7 (systemd) | API: http://167.235.68.81:8000 | **React+FastAPI** - PostgreSQL backend |
@@ -108,10 +108,11 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 
 ### 2026-02-12 to 2026-02-19 - Last.fm Albums
 - Built Last.fm album recommendation system
-- Message-checking cron for acknowledgment detection
+- Message-checking for acknowledgment detection
 - Dedicated music-curator agent created
 - OpenClaw cron job: Daily at 2 PM UTC
-- Workflow: User replies "listened" → Billie detects → Runs process_ack.py
+- Workflow: User clicks button or replies "listened" → music-curator agent processes acknowledgment
+- Agent operates independently - no involvement from Billie
 
 ### 2026-02-13 to 2026-02-16 - Prefect & Git Workflow
 - Implemented professional git workflow (later simplified)
@@ -310,6 +311,46 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 - **Files updated:**
   - `/opt/mission-control/agent.py` - Imports and registers handlers on init
 
+### 2026-02-21 - Mission Control Expected Task Behavior
+- **Workflow for User-Created Tasks:** When Filipe creates a task in Mission Control, Billie follows this process:
+  1. **Take task from backlog** - Mark as `in_progress`
+  2. **Work on task** - Execute, investigate, or complete what's requested
+  3. **Create document** - Generate detailed document explaining:
+     - What was investigated/found
+     - What subtasks were completed
+     - Any errors or issues encountered
+     - Results and outcomes
+  4. **Handle outcomes:**
+     - ✅ **Task done** → Mark task as `done`, attach document as artefact
+     - 🚫 **Task blocked** → Mark task as `blocked` with:
+        - Error message (what went wrong)
+        - Blockers list (what action/info is needed from Filipe)
+  5. **Create follow-up tasks** (if needed) - Add new tasks to backlog for:
+     - Fixes that require code changes
+     - Investigations that need more time
+     - Monitoring or setup tasks
+- **Example:** Task "Check housing market scraper run for today" (2026-02-21):
+  - Investigated crontab failure (script path wrong)
+  - Created document with analysis and recommendations
+  - Added 4 follow-up tasks (fix crontab, simplify scraper, test manually, set up monitoring)
+  - Marked original task as done with document artefact
+- **Note:** No task types needed - all tasks are natural language prompts that Billie can execute
+
+### 2026-02-21 - Last.fm Refactoring: music-curator Agent Independence
+- **Refactored** Last.fm system to use music-curator agent EXCLUSIVELY
+- **Removed:** Billie's involvement from Last.fm workflow
+- **Updated:** music-curator skill files (SKILL.md, references/workflow.md) to document full independence
+- **Workflow:** music-curator agent runs at 2 PM UTC, handles acknowledgments, sends albums
+- **Benefit:** Clean separation of concerns - Billie stays focused on user's primary needs
+- **Acknowledgment methods:** Button clicks (instant) or text "listened" reply (fallback)
+- **Systemd callback listener:** Disabled (avoid OpenClaw gateway conflicts)
+- **Documentation:** Created MIGRATION_STEPS.md and STANDALONE_SETUP.md
+- **Files updated:**
+  - `/root/.openclaw/skills/music-curator/SKILL.md` - Full independence documentation
+  - `/root/.openclaw/skills/music-curator/references/workflow.md` - Updated workflow
+  - `MEMORY.md` - Updated Active Systems and Telegram Channel IDs sections
+- **OpenClaw cron:** music-curator agent job created, daily at 2 PM UTC, silent delivery (mode: "none")
+
 ### 2026-02-21 - Mission Control Kanban Board & Simplified Task Form
 - **Removed Task Type dropdown** - Simplified form to Title, Description, Priority only
 - **Created KanbanBoard component:**
@@ -356,7 +397,7 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 
 | Purpose | Chat ID |
 |---------|---------|
-| Last.fm Albums | -1003823481796 | **AUTOMATIC:** When user replies "listened", Billie runs `/opt/lastfm-albums/process_ack.py 1` |
+| Last.fm Albums | -1003823481796 | **AUTOMATIC:** music-curator agent handles all acknowledgments (button clicks and "listened" replies) |
 | Personal Chat | 8251137081 |
 
 ---
@@ -448,4 +489,4 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 
 ---
 
-**Last Updated:** 2026-02-20
+**Last Updated:** 2026-02-21
