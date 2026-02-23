@@ -391,6 +391,26 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
   - Dashboard task form - Added task type selection
 - **Usage:** Create task with `ai_task` type, type natural language prompt, I execute overnight
 
+### 2026-02-22 - Mission Control Storage Section Simplified
+- **Simplified Storage Overview section** in System Info page
+- **Removed detailed tables** for project storage and disk usage breakdown
+- **Now uses simple tile design** matching Memory tile pattern:
+  - Shows mount point and filesystem
+  - Displays "used / free" as main value
+  - Badge showing percentage used with color coding
+  - Progress bar at bottom (green/yellow/red based on usage)
+  - Grid layout for multiple disks
+- **Inspired by Memory tile design** for consistency
+- **Fixed storage data API bug:**
+  - Changed from async `exec` to synchronous `execSync` for disk/project parsing
+  - Fixed `df -h` parsing (correct column mapping)
+  - Now properly shows all disks and projects
+- **Files updated:**
+  - `/opt/mission-control/dashboard/src/app/system/page.tsx` - Replaced detailed tables with simplified tiles
+  - `/opt/mission-control/dashboard/src/lib/agents.ts` - Fixed storage data fetching with execSync
+- **Service:** mission-control-dashboard.service restarted successfully
+- **Result:** Storage Overview now displays disk tiles with used/free data and progress bars
+
 ---
 
 ## Telegram Channel IDs
