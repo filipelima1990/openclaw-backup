@@ -14,8 +14,6 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC (cron) | Personal chat |
 | Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC (OpenClaw cron) | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily. Works independently - Billie NOT involved. Handles button clicks, text acknowledgments, and album sending. |
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses |
-| Gambling Bot | `/opt/gambling-bot/` | 24/7 (systemd) | Telegram bot | **Standalone bot** - JSON-based storage |
-| Gambling Web | `/opt/gambling-web/` | 24/7 (systemd) | API: http://167.235.68.81:8000 | **React+FastAPI** - PostgreSQL backend |
 | Mission Control | `/opt/mission-control/` | 02:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 08:00 UTC | **Futuristic UI** - Sidebar navigation, gradient effects, glassmorphism (2026-02-20) | **Natural Language Tasks** - AI task type executes prompts directly via OpenClaw (2026-02-21) |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
 | Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
@@ -431,7 +429,6 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 - **Docker:** `docker ps` for running containers (PostgreSQL)
 - **Prefect:** http://167.235.68.81:4200
 - **Mission Control Dashboard:** http://167.235.68.81:3101
-- **Gambling API:** http://167.235.68.81:8000
 
 ---
 
@@ -441,9 +438,6 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 |---------|--------|---------|
 | prefect.service | active | Prefect server (port 4200) |
 | prefect-worker.service | active | Executes Prefect deployments |
-| gambling-bot.service | active | Standalone Telegram gambling bot |
-| gambling-api.service | active | FastAPI backend for gambling-web (port 8000) |
-| gambling-dashboard.service | disabled | Streamlit dashboard (superseded by gambling-web) |
 | mission-control-dashboard.service | active | Next.js dashboard (port 3101) |
 | mission-control-tick.timer | active | Wakes mission-control agent every 30 min |
 
@@ -467,10 +461,8 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 ├── openclaw-backup/     (20K) - Backup scripts
 ├── healthcheck/         (36K) - Weekly system report
 ├── lastfm-albums/       (100K) - Last.fm recommendations
-├── gambling-bot/        (372K) - Standalone Telegram bot (JSON)
 ├── quiz/                (876K) - Data Engineering Quiz (PostgreSQL)
 ├── football-data/       (896K) - Premier League scraper (Prefect)
-├── gambling-web/        (239M) - React+FastAPI gambling tracker (PostgreSQL)
 ├── google/              (388M) - Chrome browser (automation)
 ├── mission-control/     (453M) - Autonomous agent + Next.js dashboard
 ├── prefect/             (577M) - Prefect server (port 4200)
@@ -479,10 +471,21 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 
 ---
 
+### 2026-02-23 - Gambling Systems Removed
+- **Decision:** All gambling-related code removed (user working on better version separately)
+- **Removed:**
+  - `/opt/gambling-bot/` - Standalone Telegram bot (372K)
+  - `/opt/gambling-web/` - React+FastAPI gambling tracker (239M)
+  - Systemd services: gambling-bot.service, gambling-api.service (both stopped and disabled)
+- **Port freed:** 8000 now available for user's new project
+- **Resources reclaimed:** ~239MB disk space + ~80MB RAM (bot peak)
+- **Files updated:** MEMORY.md - Active Systems, Running Systemd Services, File Structure Summary, Future Work sections
+
+---
+
 ## Future Work / To Rework
 
-1. **Gambling Systems:** Both gambling-bot (standalone) and gambling-web (React+FastAPI) need to be reworked - they serve different purposes but aren't actively used yet
-2. **Prefect Deployments:** Only one deployment (housing market) - football data deployment was removed
+1. **Prefect Deployments:** Only one deployment (housing market) - football data deployment was removed
 
 ### 2026-02-20 - Mission Control UI Enhancements
 - **Futuristic UI Redesign:** Applied modern, futuristic design to Mission Control dashboard
@@ -509,4 +512,4 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 
 ---
 
-**Last Updated:** 2026-02-21
+**Last Updated:** 2026-02-23
