@@ -13,6 +13,7 @@ All systems use cron jobs. Documentation lives in `/opt/<system>/README.md`.
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC (cron) | Personal chat |
 | Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC (OpenClaw cron) | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily. Works independently - Billie NOT involved. Handles button clicks, text acknowledgments, and album sending. |
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses | **Nationwide scraping** - All Portugal apartment listings |
+| LipeTips | `/opt/lipetips/` | Manual | Web: http://167.235.68.81:3000 | Football betting predictions platform with OddsPortal scraping, AI-powered predictions, and bet tracking |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
 | Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
 
@@ -442,6 +443,7 @@ All systems now use cron jobs. No persistent systemd services needed.
 ## PostgreSQL Databases
 
 - **portugal_houses** - Portugal nationwide housing listings (514K+ records)
+- **lipetips** - Football betting predictions platform with matches, AI predictions, and bet tracking
 - **postgres** - System DB
 
 ---
@@ -455,6 +457,7 @@ All systems now use cron jobs. No persistent systemd services needed.
 ├── openclaw-backup/     (20K) - Backup scripts
 ├── healthcheck/         (36K) - Weekly system report
 ├── lastfm-albums/       (100K) - Last.fm recommendations
+├── lipetips/            (Football betting predictions platform)
 ├── google/              (388M) - Chrome browser (automation)
 └── portugal-house-market/ (710M) - Housing scraper (nationwide)
 ```
@@ -518,6 +521,32 @@ All systems now use cron jobs. No persistent systemd services needed.
   - Loaded 62,280 new rows, total 514,283 rows in database
   - Cities include: Porto area, Lisbon area, Algarve, etc.
 - **Files updated:** MEMORY.md - Active Systems, PostgreSQL Databases, File Structure Summary
+
+### 2026-02-25 - LipeTips System Documented
+- **Documented:** LipeTips football betting predictions platform
+- **Location:** `/opt/lipetips/`
+- **Web Access:** http://167.235.68.81:3000
+- **Database:** PostgreSQL `lipetips` database
+- **Features:**
+  - Automated web scraping from OddsPortal (matches, odds, AI predictions)
+  - AI-powered predictions for various markets (Match Winner, Goals, BTTS)
+  - Confidence scoring with favorite picks
+  - Automatic match results fetching and bet settlement
+  - Comprehensive bet tracking with profit/loss calculations
+  - Statistics dashboard with charts and period filters
+  - Dark mode support
+- **Tech Stack:**
+  - Backend: Python 3.12+, FastAPI, SQLAlchemy 2.0, Playwright (scraping)
+  - Frontend: React 18 with TypeScript, Vite
+  - Database: PostgreSQL 16
+- **Ports:**
+  - 3000: React frontend (currently running)
+  - 8000: FastAPI backend (manual start)
+- **Workflows:**
+  - `scrape_workflow.py` - Unified scraping pipeline (matches + predictions + outcomes + auto bet settlement)
+  - `fetch_outcomes.py` - Standalone outcomes fetcher
+  - `normalize_team_names.py` - Team name normalization with 200+ mappings
+- **Files updated:** MEMORY.md - Active Systems, PostgreSQL Databases, File Structure Summary, Timeline
 
 ---
 
