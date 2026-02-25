@@ -548,6 +548,30 @@ All systems now use cron jobs. No persistent systemd services needed.
   - `normalize_team_names.py` - Team name normalization with 200+ mappings
 - **Files updated:** MEMORY.md - Active Systems, PostgreSQL Databases, File Structure Summary, Timeline
 
+### 2026-02-25 - Port Cleanup & Nginx Configuration Cleanup
+- **Removed:** Broken nginx reverse proxy configurations
+  - Removed `/etc/nginx/sites-enabled/gambling-web` (proxied to port 8000, backend removed)
+  - Removed `/etc/nginx/sites-enabled/mission-control` (proxied to port 3101, backend removed)
+  - Nginx reloaded successfully
+- **Killed:** Zombie Vite dev server (port 5173)
+  - Process PID 163213 terminated
+  - This was a leftover from removed gambling-web frontend
+- **Port Changes:**
+  - ❌ Port 3100: No longer listening (Mission Control proxy removed)
+  - ❌ Port 8502: No longer listening (Gambling Web proxy removed)
+  - ❌ Port 5173: No longer listening (Vite zombie process killed)
+  - ✅ Port 3000: LipeTips React frontend (still running)
+  - ✅ Port 8000: LipeTips FastAPI backend (running)
+- **Active Ports (public access):**
+  - 22 (SSH)
+  - 3000 (LipeTips React App)
+  - 5432 (PostgreSQL)
+- **Active Ports (local only):**
+  - 53 (DNS resolver)
+  - 631 (CUPS print server)
+  - 18789, 18791, 18792 (OpenClaw Gateway)
+- **Files updated:** MEMORY.md - Timeline
+
 ---
 
 **Last Updated:** 2026-02-25
