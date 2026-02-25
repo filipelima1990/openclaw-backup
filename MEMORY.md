@@ -6,15 +6,13 @@ _Refer to `.secrets.md` for sensitive information (tokens, IPs, keys)._
 
 ## Active Systems
 
-All systems use cron jobs or systemd services. Documentation lives in `/opt/<system>/README.md`.
+All systems use cron jobs. Documentation lives in `/opt/<system>/README.md`.
 
 | System | Location | Schedule | Destination |
 |--------|----------|----------|-------------|
-| Daily Quiz | `/opt/quiz/` | 9 AM UTC (cron) | Personal chat | **PostgreSQL-backed** - Learning paths, topic mastery, weak area detection |
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC (cron) | Personal chat |
 | Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC (OpenClaw cron) | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily. Works independently - Billie NOT involved. Handles button clicks, text acknowledgments, and album sending. |
-| Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses |
-| Mission Control | `/opt/mission-control/` | 02:00-07:00 UTC (timer) | Dashboard: http://167.235.68.81:3101 | **Autonomous agent** - Next.js 16, Server Components, Server Actions - Morning brief at 08:00 UTC | **Futuristic UI** - Sidebar navigation, gradient effects, glassmorphism (2026-02-20) | **Natural Language Tasks** - AI task type executes prompts directly via OpenClaw (2026-02-21) |
+| Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses | **Nationwide scraping** - All Portugal apartment listings |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
 | Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
 
@@ -434,20 +432,16 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 
 ## Running Systemd Services
 
-| Service | Status | Purpose |
-|---------|--------|---------|
-| prefect.service | active | Prefect server (port 4200) |
-| prefect-worker.service | active | Executes Prefect deployments |
-| mission-control-dashboard.service | active | Next.js dashboard (port 3101) |
-| mission-control-tick.timer | active | Wakes mission-control agent every 30 min |
+All systems now use cron jobs. No persistent systemd services needed.
 
 ---
 
+### 2026-02-23 - Gambling Systems Removed
+- **Decision:** All gambling-related code removed (user working on better version separately)
+
 ## PostgreSQL Databases
 
-- **football_data** - Premier League match history
-- **portugal_houses** - Porto housing listings (185K+ records)
-- **quiz** / **quiz_prod** - Quiz system (both exist, likely use quiz_prod)
+- **portugal_houses** - Portugal nationwide housing listings (514K+ records)
 - **postgres** - System DB
 
 ---
@@ -461,12 +455,8 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 ├── openclaw-backup/     (20K) - Backup scripts
 ├── healthcheck/         (36K) - Weekly system report
 ├── lastfm-albums/       (100K) - Last.fm recommendations
-├── quiz/                (876K) - Data Engineering Quiz (PostgreSQL)
-├── football-data/       (896K) - Premier League scraper (Prefect)
 ├── google/              (388M) - Chrome browser (automation)
-├── mission-control/     (453M) - Autonomous agent + Next.js dashboard
-├── prefect/             (577M) - Prefect server (port 4200)
-└── portugal-house-market/ (710M) - Housing scraper (Prefect)
+└── portugal-house-market/ (710M) - Housing scraper (nationwide)
 ```
 
 ---
@@ -479,13 +469,14 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
   - Systemd services: gambling-bot.service, gambling-api.service (both stopped and disabled)
 - **Port freed:** 8000 now available for user's new project
 - **Resources reclaimed:** ~239MB disk space + ~80MB RAM (bot peak)
-- **Files updated:** MEMORY.md - Active Systems, Running Systemd Services, File Structure Summary, Future Work sections
+- **Files updated:** MEMORY.md - Active Systems, File Structure Summary
 
 ---
 
 ## Future Work / To Rework
 
-1. **Prefect Deployments:** Only one deployment (housing market) - football data deployment was removed
+1. **Last.fm Albums:** Needs OpenClaw cron job configuration (currently not scheduled)
+2. **Daily Quiz:** User wants to work on this later
 
 ### 2026-02-20 - Mission Control UI Enhancements
 - **Futuristic UI Redesign:** Applied modern, futuristic design to Mission Control dashboard
@@ -510,6 +501,24 @@ All systems use cron jobs or systemd services. Documentation lives in `/opt/<sys
 - **Performance:** ~5-second build time with Turbopack, ~100KB bundle size
 - **Tech Stack:** Next.js 16, React 19, Tailwind CSS v4
 
+### 2026-02-25 - Systems Cleanup
+- **Removed:** Daily Quiz system (`/opt/quiz/` - 876K)
+  - Removed cron job from crontab
+  - Removed quiz and quiz_prod PostgreSQL databases
+  - User wants to work on this later
+- **Removed:** Mission Control system (`/opt/mission-control/` - 453M)
+  - Stopped and disabled systemd services:
+    - mission-control-dashboard.service
+    - mission-control-tick.timer
+    - mission-control-tick.service
+  - Removed entire directory
+- **Verified:** Housing Market scraper running correctly
+  - Scraping nationwide data (all Portugal, not just Porto)
+  - Last successful run: 2026-02-25 02:00 UTC
+  - Loaded 62,280 new rows, total 514,283 rows in database
+  - Cities include: Porto area, Lisbon area, Algarve, etc.
+- **Files updated:** MEMORY.md - Active Systems, PostgreSQL Databases, File Structure Summary
+
 ---
 
-**Last Updated:** 2026-02-23
+**Last Updated:** 2026-02-25
