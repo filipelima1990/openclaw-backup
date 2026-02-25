@@ -530,22 +530,37 @@ All systems now use cron jobs. No persistent systemd services needed.
 - **Features:**
   - Automated web scraping from OddsPortal (matches, odds, AI predictions)
   - AI-powered predictions for various markets (Match Winner, Goals, BTTS)
-  - Confidence scoring with favorite picks
+  - Confidence scoring with favorite picks (⭐)
+  - **What If Analysis**: Simulate hypothetical betting (€10 per bet) comparing "All Markets" vs "Favorite Picks Only"
   - Automatic match results fetching and bet settlement
   - Comprehensive bet tracking with profit/loss calculations
-  - Statistics dashboard with charts and period filters
+  - Statistics dashboard with charts and period filters (All Time, 7/30/90 days)
   - Dark mode support
+- **Code Architecture (Refactored):**
+  - **Frontend:**
+    - Shared modules: `types/index.ts` (centralized interfaces), `hooks/useTheme.ts`, `utils/dateFormat.ts`, `services/api.ts`
+    - Reusable components: `charts/` (LineChart, DonutChart), `CountryLeagueBadge.tsx`
+    - Benefits: Type safety, centralized state, consistent patterns
+  - **Backend:**
+    - API layer: `schemas.py` (Pydantic response models), `main.py` with helper functions
+    - Business logic: `src/utils/calculations.py` (canonical bet settlement & statistics)
+    - Benefits: Reduced duplication, single source of truth for calculations
 - **Tech Stack:**
   - Backend: Python 3.12+, FastAPI, SQLAlchemy 2.0, Playwright (scraping)
-  - Frontend: React 18 with TypeScript, Vite
+  - Frontend: React 18 with TypeScript, Vite, Inline Styles (no CSS framework), Pure SVG Charts
   - Database: PostgreSQL 16
 - **Ports:**
   - 3000: React frontend (currently running)
   - 8000: FastAPI backend (manual start)
 - **Workflows:**
-  - `scrape_workflow.py` - Unified scraping pipeline (matches + predictions + outcomes + auto bet settlement)
+  - `scrape_workflow.py` - Unified scraping pipeline (matches + predictions + outcomes + auto bet settlement + accurate kickoff times)
   - `fetch_outcomes.py` - Standalone outcomes fetcher
+  - `backfill_kickoff_times.py` - Update kickoff times from detail pages (more accurate than hot matches)
   - `normalize_team_names.py` - Team name normalization with 200+ mappings
+- **Kickoff Time Extraction:**
+  - Parses absolute dates: "Saturday, 21 Feb 2026, 17:30" → UTC
+  - Parses relative dates: "Today, 25 Feb 2026, 20:00" → uses current date
+  - Handles split elements across multiple `<p>` tags
 - **Files updated:** MEMORY.md - Active Systems, PostgreSQL Databases, File Structure Summary, Timeline
 
 ### 2026-02-25 - Port Cleanup & Nginx Configuration Cleanup
