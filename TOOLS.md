@@ -38,3 +38,13 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+---
+
+### Web Scraping
+
+- **Playwright:** Python async playwright for scraping Cloudflare-protected sites
+  - Installed: `pip3 install playwright --break-system-packages`
+  - Browser: Chromium (installed via `playwright install chromium`)
+  - Usage: `playwright-cli open <url>` (npm) or Python script
+  - Note: Requires `--no-sandbox` flag when running as root

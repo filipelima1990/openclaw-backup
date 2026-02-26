@@ -587,6 +587,20 @@ All systems now use cron jobs. No persistent systemd services needed.
   - 18789, 18791, 18792 (OpenClaw Gateway)
 - **Files updated:** MEMORY.md - Timeline
 
+### 2026-02-26 - Playwright Installed & PredictZ Scraper Created
+- **Installed:** Python Playwright (async browser automation) for scraping protected websites
+  - Installed globally: `pip3 install playwright --break-system-packages`
+  - Installed Chromium browser: `playwright install chromium`
+  - Bypasses Cloudflare bot detection on PredictZ
+  - Runs headless with no-sandbox flag (required for root user)
+- **Created:** PredictZ accumulator tips scraper (`/tmp/scrape_accumulators.py`)
+  - Extracts accumulator tips from https://www.predictz.com/
+  - Returns formatted Telegram messages with match predictions and odds
+  - Calculates returns for €5, €10, €20 stakes
+  - Successfully scrapes BTTS and Favourites Win accumulators
+- **Usage:** Can run manually via Python script, can be automated for daily tips
+- **Files updated:** MEMORY.md - Timeline
+
 ---
 
-**Last Updated:** 2026-02-25
+**Last Updated:** 2026-02-26
