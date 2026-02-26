@@ -458,6 +458,7 @@ All systems now use cron jobs. No persistent systemd services needed.
 ├── openclaw-backup/     (20K) - Backup scripts
 ├── healthcheck/         (36K) - Weekly system report
 ├── lastfm-albums/       (100K) - Last.fm recommendations
+├── predictz-accumulator/ - PredictZ accumulator tips
 ├── lipetips/            (Football betting predictions platform)
 ├── google/              (388M) - Chrome browser (automation)
 └── portugal-house-market/ (710M) - Housing scraper (nationwide)
