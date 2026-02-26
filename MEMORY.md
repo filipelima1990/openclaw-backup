@@ -12,6 +12,7 @@ All systems use cron jobs. Documentation lives in `/opt/<system>/README.md`.
 |--------|----------|----------|-------------|
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC (cron) | Personal chat |
 | Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC (OpenClaw cron) | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily. Works independently - Billie NOT involved. Handles button clicks, text acknowledgments, and album sending. |
+| PredictZ Accumulator | `/opt/predictz-accumulator/` | Daily 11 AM UTC (cron) | Personal chat | Daily accumulator tips from PredictZ with BTTS and Favourites Win accumulators, returns calculated for €5/€10/€20 stakes |
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses | **Nationwide scraping** - All Portugal apartment listings |
 | LipeTips | `/opt/lipetips/` | Manual | Web: http://167.235.68.81:3000 | Football betting predictions platform with OddsPortal scraping, AI-powered predictions, and bet tracking |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
@@ -587,19 +588,31 @@ All systems now use cron jobs. No persistent systemd services needed.
   - 18789, 18791, 18792 (OpenClaw Gateway)
 - **Files updated:** MEMORY.md - Timeline
 
-### 2026-02-26 - Playwright Installed & PredictZ Scraper Created
+### 2026-02-26 - Playwright Installed & PredictZ Accumulator System Created
 - **Installed:** Python Playwright (async browser automation) for scraping protected websites
   - Installed globally: `pip3 install playwright --break-system-packages`
   - Installed Chromium browser: `playwright install chromium`
   - Bypasses Cloudflare bot detection on PredictZ
   - Runs headless with no-sandbox flag (required for root user)
-- **Created:** PredictZ accumulator tips scraper (`/tmp/scrape_accumulators.py`)
-  - Extracts accumulator tips from https://www.predictz.com/
-  - Returns formatted Telegram messages with match predictions and odds
-  - Calculates returns for €5, €10, €20 stakes
-  - Successfully scrapes BTTS and Favourites Win accumulators
-- **Usage:** Can run manually via Python script, can be automated for daily tips
-- **Files updated:** MEMORY.md - Timeline
+- **Created:** PredictZ Accumulator Tips system (`/opt/predictz-accumulator/`)
+  - **Skill:** predictz-accumulator at `~/.openclaw/skills/predictz-accumulator/`
+  - **Script:** `send_accumulators.py` - Fetches tips, formats message, sends to Telegram
+  - **Schedule:** Daily at 11 AM UTC via OpenClaw cron
+  - **Features:**
+    - BTTS Accumulator (Both Teams To Score)
+    - Favourites Win Accumulator
+    - Returns calculated for €5, €10, €20 stakes
+    - Formatted Telegram message with emojis
+    - Comprehensive logging to `/var/log/predictz-accumulator.log`
+  - **Cron Job ID:** `7cb05903-c602-47ea-8946-80b48415fae2`
+  - **Next Run:** 2026-02-27 11:00 AM UTC
+- **Testing:** Successfully sent test message to personal chat
+- **Files updated:**
+  - `/opt/predictz-accumulator/send_accumulators.py` - Main script
+  - `/opt/predictz-accumulator/README.md` - System documentation
+  - `~/.openclaw/skills/predictz-accumulator/SKILL.md` - Skill documentation
+  - `TOOLS.md` - Added Playwright and scraping notes
+  - `MEMORY.md` - Active Systems, Timeline updated
 
 ---
 
