@@ -13,8 +13,10 @@ All systems use cron jobs. Documentation lives in `/opt/<system>/README.md`.
 | Health Report | `/opt/healthcheck/` | Sundays 10 AM UTC (cron) | Personal chat |
 | Last.fm Albums | `/opt/lastfm-albums/` | 2 PM UTC (OpenClaw cron) | Channel -1003823481796 | **AUTOMATIC:** Dedicated music-curator agent runs daily. Works independently - Billie NOT involved. Handles button clicks, text acknowledgments, and album sending. |
 | PredictZ Accumulator | `/opt/predictz-accumulator/` | Daily 11 AM UTC (cron) | Personal chat | Daily accumulator tips from PredictZ with BTTS and Favourites Win accumulators, returns calculated for €5/€10/€20 stakes |
+| Trading 212 API | OpenClaw skill | Manual (on-demand) | N/A | **SKILL:** trading212-api at `~/.openclaw/skills/trading212-api/` - Official Trading 212 API wrapper for AI assistants |
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses | **Nationwide scraping** - All Portugal apartment listings |
 | LipeTips | `/opt/lipetips/` | Manual | Web: http://167.235.68.81:3000 | Football betting predictions platform with OddsPortal scraping, AI-powered predictions, and bet tracking |
+| OpenClaw Mission Control | `/opt/openclaw-mission-control/` | Manual | N/A | OpenClaw agent orchestration dashboard - manage agents, boards, tasks, gateways, approvals, and activity feed |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
 | Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
 
@@ -140,13 +142,14 @@ All systems use cron jobs. Documentation lives in `/opt/<system>/README.md`.
 - Archived `/opt/guitar/`
 - System crontab entry removed
 
-### 2026-02-19 - Mission Control
+### 2026-02-19 - Mission Control (Removed 2026-02-27)
 - Created autonomous overnight agent with Next.js dashboard
 - Execution window: 00:00 - 07:00 UTC
 - Morning brief at 07:00 UTC
 - Task tracking with logs, artefacts, blockers
 - Self-improvement system
 - Dashboard on port 3101
+- **Removed 2026-02-27:** All mission control code, systemd services, and directory removed (633M reclaimed)
 
 ### 2026-02-19 - Quiz System PostgreSQL Migration
 - Migrated Quiz system from JSON to PostgreSQL
@@ -447,6 +450,11 @@ All systems now use cron jobs. No persistent systemd services needed.
 - **lipetips** - Football betting predictions platform with matches, AI predictions, and bet tracking
 - **postgres** - System DB
 
+**Removed Databases (2026-02-27):**
+- **mission_control** - Mission Control system (14 tables)
+- **football_data** - Prefect football data project (2 tables)
+- **gambling_bot** - Standalone gambling bot database (multiple tables)
+
 ---
 
 ## File Structure Summary
@@ -457,11 +465,14 @@ All systems now use cron jobs. No persistent systemd services needed.
 ├── postgresql/          (16K) - PostgreSQL config
 ├── openclaw-backup/     (20K) - Backup scripts
 ├── healthcheck/         (36K) - Weekly system report
-├── lastfm-albums/       (100K) - Last.fm recommendations
-├── predictz-accumulator/ - PredictZ accumulator tips
-├── lipetips/            (Football betting predictions platform)
-├── google/              (388M) - Chrome browser (automation)
-└── portugal-house-market/ (710M) - Housing scraper (nationwide)
+├── predictz-accumulator/ (20K) - PredictZ accumulator tips
+├── prefect/             (64K) - Prefect (decommissioned, cron now used)
+├── lastfm-albums/       (188K) - Last.fm recommendations
+├── postgres-mcp/        (2.1M) - PostgreSQL MCP server
+├── web-scraper-mcp/     (205M) - Web Scraper MCP server
+├── google/              (387M) - Chrome browser (automation)
+├── lipetips/            (438M) - Football betting predictions platform
+└── portugal-house-market/ (727M) - Housing scraper (nationwide)
 ```
 
 ---
@@ -483,7 +494,7 @@ All systems now use cron jobs. No persistent systemd services needed.
 1. **Last.fm Albums:** Needs OpenClaw cron job configuration (currently not scheduled)
 2. **Daily Quiz:** User wants to work on this later
 
-### 2026-02-20 - Mission Control UI Enhancements
+### 2026-02-20 - Mission Control UI Enhancements (Historical - Removed 2026-02-27)
 - **Futuristic UI Redesign:** Applied modern, futuristic design to Mission Control dashboard
 - **Sidebar Navigation:**
   - Fixed sidebar with gradient design (blue/purple theme)
@@ -511,12 +522,10 @@ All systems now use cron jobs. No persistent systemd services needed.
   - Removed cron job from crontab
   - Removed quiz and quiz_prod PostgreSQL databases
   - User wants to work on this later
-- **Removed:** Mission Control system (`/opt/mission-control/` - 453M)
-  - Stopped and disabled systemd services:
-    - mission-control-dashboard.service
-    - mission-control-tick.timer
-    - mission-control-tick.service
-  - Removed entire directory
+- **Removed:** Mission Control system (partial removal - completed 2026-02-27)
+  - Stopped and disabled systemd services (services re-created later)
+  - Removed directory (re-created later)
+  - **Final removal:** 2026-02-27 - All code, services, and systemd files deleted
 - **Verified:** Housing Market scraper running correctly
   - Scraping nationwide data (all Portugal, not just Porto)
   - Last successful run: 2026-02-25 02:00 UTC
@@ -617,4 +626,101 @@ All systems now use cron jobs. No persistent systemd services needed.
 
 ---
 
-**Last Updated:** 2026-02-26
+**Last Updated:** 2026-02-27
+
+**Status:** Mission Control system completely removed (633M reclaimed)
+
+### 2026-02-27 - OpenClaw Mission Control Installed
+- **Installed:** OpenClaw Mission Control from `abhi1693/openclaw-mission-control` repository
+- **Location:** `/opt/openclaw-mission-control/`
+- **Deployment Mode:** Local mode (backend and frontend run directly on host, not Docker)
+- **Database:** Existing PostgreSQL on port 5432, new database `mission_control` created
+- **Ports:**
+  - Frontend: 3001 (not 3000 to avoid conflict with LipeTips)
+  - Backend: 8001 (not 8000 to avoid conflict with LipeTips)
+- **Authentication:** Local mode with generated bearer token
+  - Token: c277144553b1c089efe380b48fc52d9a61ce07c18a2d5f1bb4714c2e5455c143
+- **Tech Stack:**
+  - Backend: FastAPI (Python 3.12 via uv)
+  - Frontend: Next.js 16 with Turbopack
+  - Database: PostgreSQL 16 (existing instance)
+- **Installation Process:**
+  - Cloned repo to `/opt/openclaw-mission-control/`
+  - Ran installer with custom ports and external database configuration
+  - Created `mission_control` database in existing PostgreSQL
+  - Installed Python dependencies via `uv` (67 packages)
+  - Installed Node.js dependencies via `npm` (915 packages)
+  - Applied 21 database migrations (Alembic)
+  - Built frontend production bundle (Next.js build)
+  - Started backend service (uvicorn on port 8001)
+  - Started frontend service (Next.js on port 3001)
+- **Services Running:**
+  - Backend: uvicorn app.main:app --host 0.0.0.0 --port 8001
+  - Frontend: next start --hostname 0.0.0.0 --port 3001
+  - Logs: /var/log/mission-control-backend.log, /var/log/mission-control-frontend.log
+- **Access URLs:**
+  - Frontend: http://167.235.68.81:3001
+  - Backend: http://167.235.68.81:8001/healthz
+- **Capabilities:**
+  - Work orchestration: organizations, board groups, boards, tasks, tags
+  - Agent operations: create, inspect, manage agent lifecycle
+  - Governance & approvals: approval flows for sensitive actions
+  - Gateway management: connect and operate gateway integrations
+  - Activity visibility: timeline of all system actions
+  - API-first model: UI and automation use same platform
+- **Files updated:**
+  - `.secrets.md` - Added Mission Control auth token and URLs
+  - `MEMORY.md` - Active Systems, Timeline updated
+- **Notes:**
+  - This is a production-ready, team-scale system (different from the personal Mission Control that was removed)
+  - No new Docker containers created - uses existing PostgreSQL
+  - Manual startup required (no systemd services configured yet)
+- **Next Steps:**
+  - Configure systemd services for auto-start
+  - Connect to OpenClaw Gateway
+  - Set up nginx reverse proxy for HTTPS
+  - Create initial organization and boards
+
+### 2026-02-27 - Trading 212 API Skill Installed
+- **Installed:** Official Trading 212 API skill (`trading212-api`) from ClawHub
+  - Location: `~/.openclaw/skills/trading212-api/`
+  - Version: 1.0.0
+  - Author: Trading 212 Labs
+- **Setup:** Configured DEMO environment credentials
+  - API Key: 45947595ZuBKIzmQwIgVrvEuJSfPMUXdxLiXg
+  - API Secret: mS5mqTnZRrl9cQoKv2jMgcb_4M5tVVvk7bwYAN6-5Yk
+  - Base URL: https://demo.trading212.com/api/v0
+  - Account ID: 45947595
+  - Currency: EUR
+  - ✅ Connection tested and working
+- **Capabilities:**
+  - Portfolio Management - Account summary, cash balance, P&L tracking
+  - Order Placement - Market, limit, stop, stop-limit orders
+  - Position Monitoring - Track holdings with P&L calculations
+  - Instrument Lookup - Search and browse tradable stocks
+  - Historical Data - Orders, dividends, transactions, CSV exports
+  - Exchange Metadata - Trading hours and schedules
+- **Notes:**
+  - API is in beta (endpoints may change)
+  - Credentials are environment-specific (DEMO vs LIVE keys don't mix)
+  - Rate limits apply (varies per endpoint)
+  - Always test in DEMO before live trading
+- **Files updated:**
+  - `.secrets.md` - Added Trading 212 credentials
+  - `MEMORY.md` - Active Systems, Timeline updated
+
+### 2026-02-27 - Mission Control Removed (Final)
+- **Decision:** Complete removal of Mission Control system
+- **Removed:**
+  - `/opt/mission-control/` directory (633M)
+  - systemd services:
+    - mission-control-dashboard.service (dashboard on port 3101)
+    - mission-control.service (agent daemon)
+    - mission-control-tick.service (tick handler)
+    - mission-control-tick.timer (30-minute schedule)
+  - All systemd service files deleted from /etc/systemd/system/
+  - PostgreSQL database: `mission_control` (14 tables)
+    - Tables: _migrations, agents, businesses, conversation_participants, conversations, events, messages, openclaw_sessions, planning_questions, planning_specs, task_activities, task_deliverables, tasks, workspaces
+- **Resources Reclaimed:** 633M disk space + database storage (mission_control, football_data, gambling_bot)
+- **Rationale:** System no longer needed, replaced by simpler workflows
+- **Timeline Note:** All previous Mission Control entries (2026-02-19 to 2026-02-25) are historical references to a system that has now been removed
