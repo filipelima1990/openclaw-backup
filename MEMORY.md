@@ -16,7 +16,7 @@ All systems use cron jobs. Documentation lives in `/opt/<system>/README.md`.
 | Trading 212 API | OpenClaw skill | Manual (on-demand) | N/A | **SKILL:** trading212-api at `~/.openclaw/skills/trading212-api/` - Official Trading 212 API wrapper for AI assistants |
 | Housing Market | `/opt/portugal-house-market/` | Daily 1 AM UTC (cron) | PostgreSQL: portugal_houses | **Nationwide scraping** - All Portugal apartment listings |
 | LipeTips | `/opt/lipetips/` | Manual | Web: http://167.235.68.81:3000 | Football betting predictions platform with OddsPortal scraping, AI-powered predictions, and bet tracking |
-| OpenClaw Mission Control | `/opt/openclaw-mission-control/` | Manual | N/A | OpenClaw agent orchestration dashboard - manage agents, boards, tasks, gateways, approvals, and activity feed |
+| Mission Control | `/opt/mission-control/` | Running 24/7 (systemd) | Web: http://167.235.68.81:4000 | AI Agent Orchestration Dashboard - Kanban board, AI planning, agent discovery, real-time feed |
 | PostgreSQL | `/opt/postgresql/` | Running 24/7 (Docker) | Port 5432 |
 | Backup System | `/opt/openclaw-backup/` | Daily 2 AM UTC (cron) | GitHub: filipelima1990/openclaw-backup |
 
@@ -724,3 +724,61 @@ All systems now use cron jobs. No persistent systemd services needed.
 - **Resources Reclaimed:** 633M disk space + database storage (mission_control, football_data, gambling_bot)
 - **Rationale:** System no longer needed, replaced by simpler workflows
 - **Timeline Note:** All previous Mission Control entries (2026-02-19 to 2026-02-25) are historical references to a system that has now been removed
+
+---
+
+### 2026-03-01 - Mission Control Production Setup
+- **Deployed:** Mission Control dashboard in production mode
+- **Location:** `/opt/mission-control/`
+- **Access:** http://167.235.68.81:4000
+- **Service:** systemd (mission-control.service) - runs 24/7 with auto-restart
+- **Configuration:**
+  - Workspace: `/root/.openclaw/workspace`
+  - Projects: `/root/.openclaw/workspace/projects`
+  - Connected to OpenClaw Gateway (ws://127.0.0.1:18789)
+- **Features:**
+  - Kanban board with 7 columns (Planning → Done)
+  - AI planning with Q&A flow
+  - Agent discovery (imports main, music-curator)
+  - Real-time live feed
+  - Task management and workspace organization
+- **Usage:**
+  - Ad-hoc tasks: Create tasks for quick investigations
+  - Project management: Track ongoing work across systems
+  - Better visibility: Watch agents work in real-time
+- **Files updated:**
+  - `/opt/mission-control/.env.local` - Configuration
+  - `/etc/systemd/system/mission-control.service` - Systemd service
+  - `MEMORY.md` - Active Systems table updated
+  - `/root/.openclaw/workspace/mission-control-setup.md` - Documentation
+
+---
+
+**Last Updated:** 2026-03-01
+
+### 2026-02-28 - OpenClaw Mission Control Cleanup
+- **Decision:** Complete removal of OpenClaw Mission Control system (abhi1693/openclaw-mission-control)
+- **Removed:**
+  - Directory: `/opt/openclaw-mission-control/` (~400M reclaimed)
+  - Backend processes: uvicorn on port 8001 (killed)
+  - Frontend processes: Next.js on port 3001 (was not running)
+  - PostgreSQL database: `mission_control` (dropped)
+  - Agents deleted from OpenClaw:
+    - `agent:lead-c9e2b8ec-5876-4765-be93-d167eea2fc5e:main`
+    - `agent:mc-gateway-c1c68726-f08d-4858-92e9-8331db2e1d37:main`
+  - Agent directories: `/root/.openclaw/agents/lead-c9e2b8ec-5876-4765-be93-d167eea2fc5e/`
+  - Agent directories: `/root/.openclaw/agents/mc-gateway-c1c68726-f08d-4858-92e9-8331db2e1d37/`
+  - Workspace directories:
+    - `/root/.openclaw/workspace-gateway-c1c68726-f08d-4858-92e9-8331db2e1d37/`
+    - `/root/.openclaw/workspace-lead-c9e2b8ec-5876-4765-be93-d167eea2fc5e/`
+  - Log files: `/var/log/mission-control-backend.log`, `/var/log/mission-control-frontend.log`
+- **Configuration Cleanup:**
+  - OpenClaw configuration: Removed agent entries from `/root/.openclaw/openclaw.json`
+  - Gateway control UI: Removed port 3001 references from `allowedOrigins`
+  - Secrets: Removed Mission Control section from `.secrets.md`
+- **Ports Freed:** 3001 (frontend), 8001 (backend)
+- **Resources Reclaimed:** ~400M disk space + 2 agent directories + 2 workspace directories
+- **Files updated:**
+  - `MEMORY.md` - Active Systems table, Timeline updated with cleanup entry
+  - `.secrets.md` - Removed Mission Control credentials and URLs
+- **Status:** Complete cleanup successful - all traces of OpenClaw Mission Control removed
